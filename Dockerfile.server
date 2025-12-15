@@ -1,0 +1,50 @@
+# Dockerfile pour le serveur backend
+FROM node:18-alpine AS base
+
+# Installer les dépendances nécessaires
+RUN apk add --no-cache libc6-compat
+
+WORKDIR /app
+
+# Copier les fichiers de configuration
+COPY package.json package-lock.json ./
+COPY turbo.json ./
+
+# Copier les workspaces
+COPY packages ./packages
+COPY apps/server ./apps/server
+
+# Installer les dépendances
+RUN npm ci
+
+# Build des packages
+RUN npm run build --workspace=packages/types
+RUN npm run build --workspace=packages/database
+RUN npm run build --workspace=packages/utils
+
+# Build du serveur
+RUN npm run build --workspace=apps/server
+
+# Image de production
+FROM node:18-alpine AS runner
+
+WORKDIR /app
+
+# Copier les fichiers nécessaires
+COPY --from=base /app/package.json ./
+COPY --from=base /app/package-lock.json ./
+COPY --from=base /app/node_modules ./node_modules
+COPY --from=base /app/packages ./packages
+COPY --from=base /app/apps/server/dist ./apps/server/dist
+COPY --from=base /app/apps/server/package.json ./apps/server/
+
+# Exposer le port
+EXPOSE 3001
+
+# Variables d'environnement par défaut
+ENV NODE_ENV=production
+ENV PORT=3001
+
+# Commande de démarrage
+CMD ["node", "apps/server/dist/index.js"]
+

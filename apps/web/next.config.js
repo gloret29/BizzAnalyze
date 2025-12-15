@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  output: 'standalone',
   transpilePackages: ['@bizzanalyze/types', '@bizzanalyze/ui'],
   webpack: (config, { isServer }) => {
     // Résoudre les modules du monorepo
