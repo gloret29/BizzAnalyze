@@ -37,14 +37,30 @@ Ce guide vous explique comment déployer BizzAnalyze dans Portainer.io.
 
 #### Option B : Via Git Repository
 
+**⚠️ Important :** Assurez-vous que votre dépôt GitHub existe et est accessible avant d'utiliser cette méthode.
+
 1. Dans Portainer, allez dans **Stacks** > **Add stack**
 2. Sélectionnez **Repository**
 3. Remplissez :
-   - **Repository URL** : URL de votre repository Git
+   - **Repository URL** : `https://github.com/gloret29/BizzAnalyze.git` (ou votre URL)
    - **Compose path** : `docker-compose.portainer.yml`
-   - **Reference** : `main` ou `master`
-4. Ajoutez les variables d'environnement
-5. Cliquez sur **Deploy the stack**
+   - **Reference** : `master` (ou `main` selon votre branche)
+   - **Auto-update** : Optionnel (pour mettre à jour automatiquement)
+4. Si votre dépôt est **privé**, configurez les identifiants :
+   - **Username** : Votre nom d'utilisateur GitHub
+   - **Password** : Un Personal Access Token (PAT) GitHub (pas votre mot de passe)
+   - Pour créer un PAT : GitHub > Settings > Developer settings > Personal access tokens > Tokens (classic)
+5. Ajoutez les variables d'environnement dans la section dédiée
+6. Cliquez sur **Deploy the stack**
+
+**🔧 Résolution des problèmes de clonage Git :**
+
+Si vous obtenez une erreur "repository not found" ou du HTML au lieu du dépôt :
+
+1. **Vérifiez que le dépôt existe** : Visitez `https://github.com/gloret29/BizzAnalyze` dans votre navigateur
+2. **Vérifiez l'URL** : L'URL doit être exactement `https://github.com/gloret29/BizzAnalyze.git` (avec `.git` à la fin)
+3. **Si le dépôt est privé** : Vous DEVEZ fournir des identifiants (username + Personal Access Token)
+4. **Alternative** : Utilisez l'**Option A** (Web editor ou Upload) si le clonage Git ne fonctionne pas
 
 ### 3. Vérifier le déploiement
 
@@ -115,6 +131,29 @@ docker run --rm -v bizzanalyze_neo4j_data:/data -v $(pwd):/backup alpine tar czf
 4. Cliquez sur **Update the stack**
 
 ## Dépannage
+
+### Erreur "repository not found" ou HTML dans Portainer
+
+Si vous voyez une erreur contenant du HTML lors du clonage Git :
+
+1. **Vérifiez que le dépôt existe sur GitHub** :
+   - Visitez `https://github.com/gloret29/BizzAnalyze` dans votre navigateur
+   - Si vous obtenez une 404, le dépôt n'existe pas encore ou n'est pas accessible
+
+2. **Si le dépôt est privé** :
+   - Vous devez configurer l'authentification dans Portainer
+   - Utilisez un **Personal Access Token (PAT)** GitHub, pas votre mot de passe
+   - Créez un PAT : GitHub > Settings > Developer settings > Personal access tokens > Generate new token (classic)
+   - Donnez les permissions `repo` au token
+
+3. **Vérifiez l'URL du dépôt** :
+   - Format correct : `https://github.com/gloret29/BizzAnalyze.git`
+   - Ne pas utiliser `git@github.com:...` (SSH) dans Portainer, utilisez HTTPS
+
+4. **Solution alternative** :
+   - Utilisez l'**Option A** (Web editor ou Upload) au lieu de Git Repository
+   - Téléchargez manuellement les fichiers nécessaires depuis GitHub
+   - Uploadez-les dans Portainer via l'option "Upload"
 
 ### Les services ne démarrent pas
 
