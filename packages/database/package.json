@@ -1,0 +1,30 @@
+{
+  "name": "@bizzanalyze/database",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint src --ext .ts"
+  },
+  "dependencies": {
+    "@bizzanalyze/types": "*",
+    "neo4j-driver": "^5.20.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
+}
+
+
+
+
+
+
+
+
+
+

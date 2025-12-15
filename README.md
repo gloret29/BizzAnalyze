@@ -70,9 +70,11 @@ Ce projet utilise un monorepo basé sur [Turborepo](https://turbo.build/repo) po
 
 ## 📚 Documentation
 
+- **[QUICKSTART.md](./QUICKSTART.md)** : Guide de démarrage rapide (5 minutes)
 - **[DEV_GUIDE.md](./DEV_GUIDE.md)** : Guide complet pour les développeurs (installation, configuration, développement)
 - **[IMPLEMENTATION.md](./IMPLEMENTATION.md)** : Guide d'implémentation avec architecture détaillée et choix techniques
 - **[FEATURES_PROPOSAL.md](./FEATURES_PROPOSAL.md)** : Propositions de fonctionnalités détaillées avec priorités
+- **[IMPLEMENTATION_STATUS.md](./IMPLEMENTATION_STATUS.md)** : État actuel de l'implémentation
 
 ## 📝 Licence
 

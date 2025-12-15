@@ -1,0 +1,485 @@
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import type {
+  ApiResponse,
+  PaginatedApiResponse,
+  SyncRequest,
+  ObjectQuery,
+  StatsResponse,
+} from '@bizzanalyze/types';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+const apiClient = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Callback pour les toasters (sera défini par le composant qui utilise l'API)
+let toastCallback: ((message: string, type: 'info' | 'success' | 'error' | 'warning') => void) | null = null;
+
+export function setToastCallback(callback: (message: string, type: 'info' | 'success' | 'error' | 'warning') => void) {
+  toastCallback = callback;
+}
+
+// Intercepteur pour les requêtes
+apiClient.interceptors.request.use(
+  (config) => {
+    // Détecter les appels à l'API BizzDesign
+    if (config.url?.includes('/api/config') || config.url?.includes('/api/sync') || config.url?.includes('/api/import')) {
+      const method = config.method?.toUpperCase() || 'GET';
+      const url = config.url;
+      
+      if (toastCallback) {
+        if (url.includes('/test-connection')) {
+          toastCallback('🔗 Test de connexion à l\'API BizzDesign...', 'info');
+        } else if (url.includes('/repositories-list')) {
+          toastCallback('📦 Récupération des Repositories...', 'info');
+        } else if (url.includes('/repositories')) {
+          toastCallback('🏢 Récupération des Repositories...', 'info');
+        } else if (url.includes('/sync')) {
+          toastCallback('📥 Extraction BizzDesign en cours...', 'info');
+        } else if (url.includes('/import') && method === 'POST') {
+          toastCallback('💾 Import Neo4j en cours...', 'info');
+        } else if (url.includes('/config') && method === 'PUT') {
+          toastCallback('💾 Sauvegarde de la configuration...', 'info');
+        }
+      }
+    }
+    return config;
+  },
+  (error) => {
+    if (toastCallback) {
+      toastCallback('❌ Erreur lors de la requête', 'error');
+    }
+    return Promise.reject(error);
+  }
+);
+
+// Intercepteur pour les réponses
+apiClient.interceptors.response.use(
+  (response: AxiosResponse) => {
+    const url = response.config.url || '';
+    
+    // Détecter les réponses de l'API BizzDesign
+    if (url.includes('/api/config') || url.includes('/api/sync') || url.includes('/api/import')) {
+      if (toastCallback) {
+        if (url.includes('/test-connection')) {
+          if (response.data.success) {
+            toastCallback('✓ Connexion à l\'API BizzDesign réussie', 'success');
+          } else {
+            toastCallback(`✗ ${response.data.error || 'Échec de la connexion'}`, 'error');
+          }
+        } else if (url.includes('/repositories-list')) {
+          if (response.data.success) {
+            const count = response.data.data?.length || 0;
+            toastCallback(`✓ ${count} Repository(s) récupéré(s)`, 'success');
+          } else {
+            toastCallback(`✗ ${response.data.error || 'Erreur lors de la récupération'}`, 'error');
+          }
+        } else if (url.includes('/repositories')) {
+          if (response.data.success) {
+            const count = response.data.data?.length || 0;
+            toastCallback(`✓ ${count} Repository(s) récupéré(s)`, 'success');
+          } else {
+            toastCallback(`✗ ${response.data.error || 'Erreur lors de la récupération'}`, 'error');
+          }
+        } else if (url.includes('/sync')) {
+          if (response.data.success) {
+            const data = response.data.data;
+            const objectsCount = data?.objectsCount || 0;
+            const relationshipsCount = data?.relationshipsCount || 0;
+            toastCallback(
+              `✓ Extraction réussie: ${objectsCount} objets, ${relationshipsCount} relations`,
+              'success'
+            );
+          } else {
+            toastCallback(`✗ ${response.data.error || "Erreur lors de l'extraction"}`, 'error');
+          }
+        } else if (url.includes('/import') && response.config.method?.toLowerCase() === 'post') {
+          if (response.data.success) {
+            const data = response.data.data;
+            const objectsCount = data?.objectsCount || 0;
+            const relationshipsCount = data?.relationshipsCount || 0;
+            toastCallback(
+              `✓ Import réussi: ${objectsCount} objets, ${relationshipsCount} relations`,
+              'success'
+            );
+          } else {
+            toastCallback(`✗ ${response.data.error || "Erreur lors de l'import"}`, 'error');
+          }
+        } else if (url.includes('/config') && response.config.method === 'put') {
+          if (response.data.success) {
+            toastCallback('✓ Configuration sauvegardée', 'success');
+          } else {
+            toastCallback(`✗ ${response.data.error || 'Erreur lors de la sauvegarde'}`, 'error');
+          }
+        }
+      }
+    }
+    return response;
+  },
+  (error) => {
+    const url = error.config?.url || '';
+    
+    if (toastCallback && (url.includes('/api/config') || url.includes('/api/sync') || (url.includes('/api/import') && error.config?.method?.toLowerCase() === 'post'))) {
+      const errorMessage = error.response?.data?.error || error.message || 'Erreur inconnue';
+      toastCallback(`✗ ${errorMessage}`, 'error');
+    }
+    
+    return Promise.reject(error);
+  }
+);
+
+/**
+ * Client API pour communiquer avec le backend
+ */
+export const api = {
+  /**
+   * Extrait les données depuis BizzDesign et les sauvegarde dans des fichiers locaux
+   */
+  async sync(repositoryId?: string): Promise<ApiResponse> {
+    const response = await apiClient.post<ApiResponse>('/api/sync', {
+      repositoryId,
+    });
+    return response.data;
+  },
+
+  /**
+   * Importe les données depuis les fichiers locaux dans Neo4j
+   */
+  async import(repositoryId?: string): Promise<ApiResponse> {
+    const response = await apiClient.post<ApiResponse>('/api/import', {
+      repositoryId,
+    });
+    return response.data;
+  },
+
+  /**
+   * Vérifie si une extraction existe pour le repository sélectionné
+   */
+  async getImportStatus(): Promise<ApiResponse<{ hasExtraction: boolean; repositoryId?: string }>> {
+    const response = await apiClient.get<ApiResponse<any>>('/api/import/status');
+    return response.data;
+  },
+
+  /**
+   * Récupère les objets avec pagination et filtres
+   */
+  async getObjects(
+    query: ObjectQuery = {}
+  ): Promise<PaginatedApiResponse<any>> {
+    const params = new URLSearchParams();
+    if (query.page !== undefined) params.append('page', query.page.toString());
+    if (query.pageSize !== undefined)
+      params.append('pageSize', query.pageSize.toString());
+    if (query.type) params.append('type', query.type);
+    if (query.search) params.append('search', query.search);
+    if (query.tags) params.append('tags', query.tags.join(','));
+
+    const response = await apiClient.get<PaginatedApiResponse<any>>(
+      `/api/objects?${params.toString()}`
+    );
+    return response.data;
+  },
+
+  /**
+   * Récupère les détails d'un objet
+   */
+  async getObject(id: string): Promise<ApiResponse<any>> {
+    const response = await apiClient.get<ApiResponse<any>>(`/api/objects/${id}`);
+    return response.data;
+  },
+
+  /**
+   * Récupère les statistiques
+   */
+  async getStats(repositoryId?: string): Promise<ApiResponse<StatsResponse>> {
+    const params = repositoryId
+      ? `?repositoryId=${repositoryId}`
+      : '';
+    const response = await apiClient.get<ApiResponse<StatsResponse>>(
+      `/api/stats${params}`
+    );
+    return response.data;
+  },
+
+  /**
+   * Health check
+   */
+  async health(): Promise<{ status: string; timestamp: string }> {
+    const response = await apiClient.get('/health');
+    return response.data;
+  },
+
+  // ============ Configuration ============
+
+  /**
+   * Récupère la configuration actuelle
+   */
+  async getConfig(): Promise<ApiResponse<{
+    apiUrl: string;
+    clientId: string;
+    hasSecret: boolean;
+    repositoryId: string;
+  }>> {
+    const response = await apiClient.get<ApiResponse<any>>('/api/config');
+    return response.data;
+  },
+
+  /**
+   * Met à jour la configuration
+   */
+  async updateConfig(config: {
+    apiUrl: string;
+    clientId: string;
+    clientSecret?: string;
+    repositoryId?: string;
+  }): Promise<ApiResponse> {
+    const response = await apiClient.put<ApiResponse>('/api/config', config);
+    return response.data;
+  },
+
+  /**
+   * Récupère la liste des repositories disponibles
+   */
+  async getRepositories(): Promise<ApiResponse<Array<{
+    id: string;
+    name: string;
+    description?: string;
+  }>>> {
+    const response = await apiClient.get<ApiResponse<any>>('/api/config/repositories-list');
+    return response.data;
+  },
+
+  /**
+   * Sélectionne un repository
+   */
+  async selectRepository(repositoryId: string): Promise<ApiResponse> {
+    const response = await apiClient.put<ApiResponse>('/api/config/repository', {
+      repositoryId,
+    });
+    return response.data;
+  },
+
+  /**
+   * Teste la connexion à l'API BizzDesign
+   */
+  async testConnection(config: {
+    apiUrl: string;
+    clientId: string;
+    clientSecret: string;
+  }): Promise<ApiResponse> {
+    const response = await apiClient.post<ApiResponse>('/api/config/test-connection', config);
+    return response.data;
+  },
+
+  /**
+   * Récupère les logs des appels API BizzDesign
+   */
+  async getBizzDesignLogs(limit: number = 50): Promise<ApiResponse<Array<{
+    timestamp: string;
+    method: string;
+    url: string;
+    status?: number;
+    duration?: number;
+    success: boolean;
+    error?: string;
+  }>>> {
+    const response = await apiClient.get<ApiResponse<any>>(`/api/logs/bizzdesign?limit=${limit}`);
+    return response.data;
+  },
+
+  /**
+   * Écoute les événements de progression via Server-Sent Events
+   * Note: Ne fonctionne que côté client (EventSource n'est pas disponible côté serveur)
+   */
+  listenToProgress(
+    onProgress: (data: {
+      type: 'progress' | 'start' | 'complete' | 'error' | 'connected';
+      message?: string;
+      current?: number;
+      total?: number;
+      offset?: number;
+      data?: any;
+    }) => void
+  ): () => void {
+    // Vérifier que nous sommes côté client
+    if (typeof window === 'undefined' || typeof EventSource === 'undefined') {
+      console.warn('EventSource is not available (server-side rendering)');
+      return () => {}; // Retourner une fonction no-op
+    }
+
+    const eventSource = new EventSource(`${API_URL}/api/progress`);
+
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        onProgress(data);
+      } catch (error) {
+        console.error('Error parsing progress event:', error);
+      }
+    };
+
+    eventSource.onerror = (error) => {
+      console.error('EventSource error:', error);
+      eventSource.close();
+    };
+
+    // Retourner une fonction pour fermer la connexion
+    return () => {
+      eventSource.close();
+    };
+  },
+
+  // ============ Export ============
+
+  /**
+   * Exporte les données dans différents formats
+   */
+  async export(data: {
+    format: 'csv' | 'json' | 'excel';
+    filters?: ObjectQuery;
+    includeRelationships?: boolean;
+  }): Promise<Blob> {
+    const response = await apiClient.post(
+      '/api/export',
+      {
+        format: data.format,
+        filters: data.filters,
+        includeRelationships: data.includeRelationships,
+      },
+      {
+        responseType: 'blob',
+      }
+    );
+    return response.data;
+  },
+
+  // ============ Graph Visualization ============
+
+  /**
+   * Récupère les données du graphe pour visualisation
+   */
+  async getGraph(params?: {
+    limit?: number;
+    type?: string;
+    search?: string;
+    nodeId?: string;
+    repositoryId?: string;
+  }): Promise<ApiResponse<{
+    nodes: Array<{
+      id: string;
+      label: string;
+      type: string;
+      category?: string;
+      subCategory?: string;
+    }>;
+    edges: Array<{
+      id: string;
+      from: string;
+      to: string;
+      type: string;
+      label?: string;
+      fromName?: string;
+      toName?: string;
+    }>;
+  }>> {
+    const queryParams = new URLSearchParams();
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.type) queryParams.append('type', params.type);
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.nodeId) queryParams.append('nodeId', params.nodeId);
+    if (params?.repositoryId) queryParams.append('repositoryId', params.repositoryId);
+
+    const url = `/api/graph?${queryParams.toString()}`;
+    
+    try {
+      const response = await apiClient.get<ApiResponse<any>>(url);
+      return response.data;
+    } catch (error: any) {
+      console.error('[API] getGraph - Erreur:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Récupère les voisins d'un nœud
+   */
+  async getNodeNeighbors(
+    nodeId: string,
+    depth?: number,
+    repositoryId?: string
+  ): Promise<ApiResponse<{
+    nodes: any[];
+    edges: any[];
+  }>> {
+    const queryParams = new URLSearchParams();
+    if (depth) queryParams.append('depth', depth.toString());
+    if (repositoryId) queryParams.append('repositoryId', repositoryId);
+
+    const response = await apiClient.get<ApiResponse<any>>(
+      `/api/graph/neighbors/${nodeId}?${queryParams.toString()}`
+    );
+      return response.data;
+  },
+
+  // ============ Analysis ============
+
+  /**
+   * Calcule la centralité
+   */
+  async analyzeCentrality(
+    type: 'degree' | 'pagerank' = 'degree',
+    repositoryId?: string
+  ): Promise<ApiResponse<{
+    type: string;
+    results: Array<{
+      nodeId: string;
+      nodeName: string;
+      nodeType: string;
+      score: number;
+    }>;
+  }>> {
+    const params = new URLSearchParams();
+    params.append('type', type);
+    if (repositoryId) params.append('repositoryId', repositoryId);
+
+    const response = await apiClient.get<ApiResponse<any>>(
+      `/api/analyze/centrality?${params.toString()}`
+    );
+    return response.data;
+  },
+
+  /**
+   * Analyse les chemins entre deux nœuds
+   */
+  async analyzePaths(
+    sourceId: string,
+    targetId: string,
+    options?: {
+      findAll?: boolean;
+      maxDepth?: number;
+      repositoryId?: string;
+    }
+  ): Promise<ApiResponse<{
+    sourceId: string;
+    targetId: string;
+    path?: any;
+    paths?: any[];
+  }>> {
+    const params = new URLSearchParams();
+    params.append('sourceId', sourceId);
+    params.append('targetId', targetId);
+    if (options?.findAll) params.append('findAll', 'true');
+    if (options?.maxDepth) params.append('maxDepth', options.maxDepth.toString());
+    if (options?.repositoryId) params.append('repositoryId', options.repositoryId);
+
+    const response = await apiClient.get<ApiResponse<any>>(
+      `/api/analyze/paths?${params.toString()}`
+    );
+    return response.data;
+  },
+};
+
