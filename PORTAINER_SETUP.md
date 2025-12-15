@@ -155,6 +155,33 @@ Si vous voyez une erreur contenant du HTML lors du clonage Git :
    - Téléchargez manuellement les fichiers nécessaires depuis GitHub
    - Uploadez-les dans Portainer via l'option "Upload"
 
+### Erreur "Dockerfile.server: no such file or directory"
+
+Si vous obtenez cette erreur lors du déploiement :
+
+1. **Vérifiez que les Dockerfiles sont dans le dépôt** :
+   - Les fichiers `Dockerfile.server` et `Dockerfile.web` doivent être à la racine du dépôt
+   - Vérifiez sur GitHub que ces fichiers sont présents
+
+2. **Vérifiez le contexte de build dans Portainer** :
+   - Dans la configuration de la stack, assurez-vous que le **Compose path** est `docker-compose.portainer.yml`
+   - Le contexte de build dans le docker-compose est `.` (racine du dépôt), ce qui est correct
+
+3. **Si vous utilisez Git Repository dans Portainer** :
+   - Assurez-vous que la **Reference** (branche) est `master` ou `main`
+   - Vérifiez que les Dockerfiles sont bien commités et poussés vers GitHub
+
+4. **Solution alternative - Utiliser l'option Upload** :
+   - Téléchargez tous les fichiers nécessaires depuis GitHub :
+     - `docker-compose.portainer.yml`
+     - `Dockerfile.server`
+     - `Dockerfile.web`
+     - `nginx.conf` (si vous utilisez Nginx)
+     - `.dockerignore`
+   - Dans Portainer, utilisez l'option **Upload** au lieu de **Repository**
+   - Uploadez tous ces fichiers
+   - Assurez-vous que la structure des fichiers est préservée (tous à la racine)
+
 ### Les services ne démarrent pas
 
 1. Vérifiez les logs dans Portainer
