@@ -19,7 +19,12 @@ out/
 .env*.local
 
 # Token storage
+.bizzdesign-token*.json
 .bizzdesign-token.json
+
+# Configuration files with secrets
+**/config.json
+apps/server/config.json
 
 # IDE
 .vscode/

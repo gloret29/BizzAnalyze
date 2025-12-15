@@ -1,0 +1,9 @@
+{
+  "bizzdesign": {
+    "apiUrl": "https://arkea.horizzon.cloud/api/3.0",
+    "clientId": "your_client_id",
+    "clientSecret": "your_client_secret",
+    "repositoryId": "your_repository_id"
+  }
+}
+
