@@ -18,7 +18,9 @@ COPY apps/server ./apps/server
 RUN npm ci
 
 # Build avec Turbo (gère automatiquement les dépendances et leurs dépendances)
-RUN npx turbo run build --filter=@bizzanalyze/server...
+# --ui=stream pour éviter les problèmes TUI en CI/Docker
+# --no-daemon pour éviter les problèmes de daemon en environnement conteneurisé
+RUN npx turbo run build --filter=@bizzanalyze/server... --ui=stream --no-daemon
 
 # Image de production
 FROM node:18-alpine AS runner
