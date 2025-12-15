@@ -15,8 +15,8 @@ coverage
 .DS_Store
 *.log
 docker-compose.yml
-docker-compose.*.yml
-Dockerfile*
+# Note: Ne pas ignorer Dockerfile* car ils sont nécessaires pour la construction
+# Dockerfile*
 nginx.conf
 scripts
 assets
