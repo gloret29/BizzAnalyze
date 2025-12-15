@@ -17,13 +17,8 @@ COPY apps/server ./apps/server
 # Installer les dépendances
 RUN npm ci
 
-# Build des packages
-RUN npm run build --workspace=packages/types
-RUN npm run build --workspace=packages/database
-RUN npm run build --workspace=packages/utils
-
-# Build du serveur
-RUN npm run build --workspace=apps/server
+# Build avec Turbo (gère automatiquement les dépendances et leurs dépendances)
+RUN npx turbo run build --filter=@bizzanalyze/server...
 
 # Image de production
 FROM node:18-alpine AS runner

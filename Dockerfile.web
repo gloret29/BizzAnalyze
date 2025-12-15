@@ -17,11 +17,8 @@ COPY apps/web ./apps/web
 # Installer les dépendances
 RUN npm ci
 
-# Build des packages
-RUN npm run build --workspace=packages/types
-
-# Build de l'application Next.js
-RUN npm run build --workspace=apps/web
+# Build avec Turbo (gère automatiquement les dépendances et leurs dépendances)
+RUN npx turbo run build --filter=@bizzanalyze/web...
 
 # Image de production
 FROM node:18-alpine AS runner
