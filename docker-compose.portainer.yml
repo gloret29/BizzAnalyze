@@ -78,7 +78,7 @@ services:
     container_name: bizzanalyze-web
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "3002:3000"  # Port externe 3002 pour éviter les conflits
     environment:
       - NODE_ENV=production
       - PORT=3000
@@ -104,8 +104,8 @@ services:
     container_name: bizzanalyze-nginx
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
+      - "8080:80"   # Port externe 8080 pour éviter les conflits avec SWAG
+      - "8443:443"  # Port externe 8443
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - nginx_logs:/var/log/nginx
