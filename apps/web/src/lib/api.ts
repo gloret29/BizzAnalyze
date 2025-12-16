@@ -7,9 +7,26 @@ import type {
   StatsResponse,
 } from '@bizzanalyze/types';
 
-// En production avec nginx, utiliser une URL relative (le proxy gère le routage)
+// En production avec reverse proxy (SWAG/Nginx), utiliser une URL relative (le proxy gère le routage)
 // En développement local, utiliser localhost:3001
-const API_URL = process.env.NEXT_PUBLIC_API_URL || (typeof window !== 'undefined' && window.location.hostname !== 'localhost' ? '' : 'http://localhost:3001');
+// Détecte automatiquement si on est côté client (browser) pour utiliser une URL relative
+const getApiUrl = () => {
+  // Si on a une URL explicite dans les env vars, l'utiliser
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+  
+  // Côté serveur (SSR), utiliser l'URL locale si disponible
+  if (typeof window === 'undefined') {
+    return 'http://localhost:3001';
+  }
+  
+  // Côté client (browser) : utiliser une URL relative pour que le reverse proxy route
+  // Cela fonctionne avec SWAG, Nginx, etc.
+  return '';
+};
+
+const API_URL = getApiUrl();
 
 const apiClient = axios.create({
   baseURL: API_URL,
