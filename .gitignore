@@ -40,8 +40,8 @@ Thumbs.db
 # Turbo
 .turbo/
 
-# Neo4j
-neo4j/
+# Neo4j local data (only at root)
+/neo4j/
 
 # Data storage
 data/
