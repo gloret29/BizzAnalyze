@@ -98,7 +98,7 @@ services:
       - "com.portainer.io.stack.name=bizzanalyze"
       - "com.portainer.io.stack.description=BizzAnalyze - Application Web"
 
-  # Reverse proxy Nginx (optionnel, pour production)
+  # Reverse proxy Nginx (requis pour la production)
   nginx:
     image: nginx:alpine
     container_name: bizzanalyze-nginx
@@ -117,8 +117,11 @@ services:
     labels:
       - "com.portainer.io.stack.name=bizzanalyze"
       - "com.portainer.io.stack.description=BizzAnalyze - Reverse Proxy"
-    profiles:
-      - nginx  # Activer avec: docker-compose --profile nginx up
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 volumes:
   neo4j_data:

@@ -67,31 +67,19 @@ Si vous obtenez une erreur "repository not found" ou du HTML au lieu du dépôt 
 Une fois le déploiement terminé, vérifiez que tous les services sont en cours d'exécution :
 
 1. Allez dans **Stacks** > **bizzanalyze**
-2. Vérifiez que les 3 services sont **Running** :
-   - `bizzanalyze-neo4j`
-   - `bizzanalyze-server`
-   - `bizzanalyze-web`
+2. Vérifiez que les **4 services** sont **Running** :
+   - `bizzanalyze-neo4j` - Base de données
+   - `bizzanalyze-server` - API Backend
+   - `bizzanalyze-web` - Application Next.js
+   - `bizzanalyze-nginx` - Reverse Proxy
 
 ### 4. Accéder à l'application
 
-- **Application Web** : http://votre-serveur:3000
-- **API Backend** : http://votre-serveur:3001
+- **Application Web** : http://votre-serveur (port 80 via Nginx)
 - **Neo4j Browser** : http://votre-serveur:7474
-- **Avec Nginx** (si activé) : http://votre-serveur
+- **API directe** (debug) : http://votre-serveur:3001
 
-## Configuration Nginx (Optionnel)
-
-Pour utiliser Nginx comme reverse proxy :
-
-1. Déployez la stack avec le profil nginx :
-   ```bash
-   docker-compose --profile nginx -f docker-compose.portainer.yml up -d
-   ```
-
-2. Ou dans Portainer, modifiez la stack et ajoutez dans les variables d'environnement :
-   ```
-   COMPOSE_PROFILES=nginx
-   ```
+> **Note** : Nginx est le point d'entrée principal. Il route automatiquement les requêtes `/api` vers le backend et les autres vers le frontend.
 
 ## Variables d'environnement
 
@@ -197,8 +185,17 @@ Si vous obtenez cette erreur lors du déploiement :
 ### L'application web ne se charge pas
 
 1. Vérifiez que le service `web` est en cours d'exécution
-2. Vérifiez que `NEXT_PUBLIC_API_URL` pointe vers le bon serveur
-3. Vérifiez les logs du conteneur `web`
+2. Vérifiez que Nginx est en cours d'exécution (il gère le routage)
+3. Vérifiez les logs du conteneur `web` et `nginx`
+
+### Erreur "Network Error" dans l'interface
+
+Cette erreur apparaît quand le frontend ne peut pas communiquer avec le backend.
+
+1. **Vérifiez que Nginx est en cours d'exécution** - c'est lui qui route les appels `/api`
+2. **Accédez via le port 80** - utilisez `http://votre-serveur` (pas `:3000`)
+3. **Testez l'API directement** - essayez `http://votre-serveur/api/health` dans le navigateur
+4. **Vérifiez les logs Nginx** pour voir les erreurs de routage
 
 ## Support
 
