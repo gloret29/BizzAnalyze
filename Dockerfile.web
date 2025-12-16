@@ -6,6 +6,10 @@ RUN apk add --no-cache libc6-compat
 
 WORKDIR /app
 
+# Argument pour l'URL de l'API (build-time)
+ARG NEXT_PUBLIC_API_URL=http://localhost:3001
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+
 # Copier les fichiers de configuration
 COPY package.json package-lock.json ./
 COPY turbo.json ./

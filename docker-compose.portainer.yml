@@ -75,6 +75,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.web
+      args:
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://192.168.1.115:3001}
     container_name: bizzanalyze-web
     restart: unless-stopped
     ports:
@@ -82,7 +84,6 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:3001}
     depends_on:
       server:
         condition: service_healthy
@@ -98,30 +99,8 @@ services:
       - "com.portainer.io.stack.name=bizzanalyze"
       - "com.portainer.io.stack.description=BizzAnalyze - Application Web"
 
-  # Reverse proxy Nginx (requis pour la production)
-  nginx:
-    image: nginx:alpine
-    container_name: bizzanalyze-nginx
-    restart: unless-stopped
-    ports:
-      - "8080:80"   # Port externe 8080 pour éviter les conflits avec SWAG
-      - "8443:443"  # Port externe 8443
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - nginx_logs:/var/log/nginx
-    depends_on:
-      - web
-      - server
-    networks:
-      - bizzanalyze-network
-    labels:
-      - "com.portainer.io.stack.name=bizzanalyze"
-      - "com.portainer.io.stack.description=BizzAnalyze - Reverse Proxy"
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+  # Note: Nginx désactivé car SWAG gère déjà le reverse proxy
+  # Configurez SWAG pour pointer vers bizzanalyze-web:3000 et bizzanalyze-server:3001
 
 volumes:
   neo4j_data:
@@ -133,8 +112,6 @@ volumes:
   neo4j_plugins:
     driver: local
   server_data:
-    driver: local
-  nginx_logs:
     driver: local
 
 networks:
