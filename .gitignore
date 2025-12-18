@@ -45,3 +45,9 @@ Thumbs.db
 
 # Data storage
 data/
+
+# Temporary assets/images
+assets/*.png
+assets/*.jpg
+assets/*.jpeg
+!assets/.gitkeep
