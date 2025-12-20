@@ -20,9 +20,14 @@ export default function RootLayout({
         <ToasterProvider>
           <nav
           style={{
-            borderBottom: '1px solid #ddd',
+            borderBottom: '1px solid var(--border-color)',
             padding: '1rem 2rem',
-            backgroundColor: 'white',
+            backgroundColor: 'var(--bg-card)',
+            backdropFilter: 'blur(10px)',
+            boxShadow: 'var(--shadow-md)',
+            position: 'sticky',
+            top: 0,
+            zIndex: 1000,
           }}
         >
           <div
@@ -39,79 +44,23 @@ export default function RootLayout({
               style={{
                 fontSize: '1.5rem',
                 fontWeight: 'bold',
-                color: '#0070f3',
+                color: 'var(--accent-primary)',
                 textDecoration: 'none',
+                background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
               }}
             >
               BizzAnalyze
             </Link>
-            <div style={{ display: 'flex', gap: '2rem' }}>
-              <Link
-                href="/dashboard"
-                style={{
-                  color: '#333',
-                  textDecoration: 'none',
-                  padding: '0.5rem 1rem',
-                  borderRadius: '4px',
-                }}
-              >
-                Tableau de bord
-              </Link>
-              <Link
-                href="/objects"
-                style={{
-                  color: '#333',
-                  textDecoration: 'none',
-                  padding: '0.5rem 1rem',
-                  borderRadius: '4px',
-                }}
-              >
-                Objets
-              </Link>
-              <Link
-                href="/graph"
-                style={{
-                  color: '#333',
-                  textDecoration: 'none',
-                  padding: '0.5rem 1rem',
-                  borderRadius: '4px',
-                }}
-              >
-                📊 Graphe
-              </Link>
-              <Link
-                href="/export"
-                style={{
-                  color: '#333',
-                  textDecoration: 'none',
-                  padding: '0.5rem 1rem',
-                  borderRadius: '4px',
-                }}
-              >
-                💾 Export
-              </Link>
-              <Link
-                href="/analyze"
-                style={{
-                  color: '#333',
-                  textDecoration: 'none',
-                  padding: '0.5rem 1rem',
-                  borderRadius: '4px',
-                }}
-              >
-                🔍 Analyses
-              </Link>
-              <Link
-                href="/settings"
-                style={{
-                  color: '#333',
-                  textDecoration: 'none',
-                  padding: '0.5rem 1rem',
-                  borderRadius: '4px',
-                }}
-              >
-                ⚙️ Paramètres
-              </Link>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <Link href="/dashboard">Tableau de bord</Link>
+              <Link href="/objects">Objets</Link>
+              <Link href="/graph">📊 Graphe</Link>
+              <Link href="/export">💾 Export</Link>
+              <Link href="/analyze">🔍 Analyses</Link>
+              <Link href="/settings">⚙️ Paramètres</Link>
             </div>
           </div>
         </nav>

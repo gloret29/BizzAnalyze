@@ -118,7 +118,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div style={{ padding: '2rem', textAlign: 'center' }}>
+      <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-primary)' }}>
         <p>Chargement...</p>
       </div>
     );
@@ -130,10 +130,11 @@ export default function DashboardPage() {
         <div
           style={{
             padding: '1rem',
-            backgroundColor: '#fee',
-            border: '1px solid #fcc',
-            borderRadius: '4px',
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            border: '1px solid var(--accent-error)',
+            borderRadius: 'var(--radius-sm)',
             marginBottom: '1rem',
+            color: 'var(--text-primary)',
           }}
         >
           <strong>Erreur :</strong> {error}
@@ -142,11 +143,18 @@ export default function DashboardPage() {
           onClick={loadStats}
           style={{
             padding: '0.5rem 1rem',
-            backgroundColor: '#0070f3',
+            backgroundColor: 'var(--accent-primary)',
             color: 'white',
             border: 'none',
-            borderRadius: '4px',
+            borderRadius: 'var(--radius-sm)',
             cursor: 'pointer',
+            transition: 'all 0.2s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'var(--accent-primary-hover)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'var(--accent-primary)';
           }}
         >
           Réessayer
@@ -165,19 +173,33 @@ export default function DashboardPage() {
           marginBottom: '2rem',
         }}
       >
-        <h1>Tableau de bord</h1>
+        <h1 style={{ color: 'var(--text-primary)' }}>Tableau de bord</h1>
         <div style={{ display: 'flex', gap: '1rem' }}>
           <button
             onClick={handleExtract}
             disabled={extracting || importing}
             style={{
               padding: '0.75rem 1.5rem',
-              backgroundColor: extracting || importing ? '#ccc' : '#0070f3',
+              backgroundColor: extracting || importing ? 'var(--bg-tertiary)' : 'var(--accent-primary)',
               color: 'white',
               border: 'none',
-              borderRadius: '4px',
+              borderRadius: 'var(--radius-sm)',
               cursor: extracting || importing ? 'not-allowed' : 'pointer',
               fontSize: '1rem',
+              transition: 'all 0.2s ease',
+              boxShadow: extracting || importing ? 'none' : 'var(--shadow-sm)',
+            }}
+            onMouseEnter={(e) => {
+              if (!extracting && !importing) {
+                e.currentTarget.style.backgroundColor = 'var(--accent-primary-hover)';
+                e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!extracting && !importing) {
+                e.currentTarget.style.backgroundColor = 'var(--accent-primary)';
+                e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
+              }
             }}
           >
             {extracting ? 'Extraction...' : '📥 Extraction BizzDesign'}
@@ -187,12 +209,26 @@ export default function DashboardPage() {
             disabled={!hasExtraction || importing || extracting}
             style={{
               padding: '0.75rem 1.5rem',
-              backgroundColor: !hasExtraction || importing || extracting ? '#ccc' : '#28a745',
+              backgroundColor: !hasExtraction || importing || extracting ? 'var(--bg-tertiary)' : 'var(--accent-success)',
               color: 'white',
               border: 'none',
-              borderRadius: '4px',
+              borderRadius: 'var(--radius-sm)',
               cursor: !hasExtraction || importing || extracting ? 'not-allowed' : 'pointer',
               fontSize: '1rem',
+              transition: 'all 0.2s ease',
+              boxShadow: !hasExtraction || importing || extracting ? 'none' : 'var(--shadow-sm)',
+            }}
+            onMouseEnter={(e) => {
+              if (hasExtraction && !importing && !extracting) {
+                e.currentTarget.style.backgroundColor = '#059669';
+                e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (hasExtraction && !importing && !extracting) {
+                e.currentTarget.style.backgroundColor = 'var(--accent-success)';
+                e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
+              }
             }}
           >
             {importing ? 'Import...' : '💾 Import Neo4j'}
@@ -204,10 +240,11 @@ export default function DashboardPage() {
         <div
           style={{
             padding: '1rem',
-            backgroundColor: '#fee',
-            border: '1px solid #fcc',
-            borderRadius: '4px',
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            border: '1px solid var(--accent-error)',
+            borderRadius: 'var(--radius-sm)',
             marginBottom: '1rem',
+            color: 'var(--text-primary)',
           }}
         >
           <strong>Erreur :</strong> {error}
@@ -249,7 +286,7 @@ export default function DashboardPage() {
           </div>
 
           <div style={{ marginBottom: '2rem' }}>
-            <h2>Répartition par type</h2>
+            <h2 style={{ color: 'var(--text-primary)' }}>Répartition par type</h2>
             {stats.objectsByType && Object.keys(stats.objectsByType).length > 0 ? (
               <div
                 style={{
@@ -264,22 +301,31 @@ export default function DashboardPage() {
                     key={type}
                     style={{
                       padding: '1rem',
-                      border: '1px solid #ddd',
-                      borderRadius: '4px',
-                      backgroundColor: '#f9f9f9',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: 'var(--radius-sm)',
+                      backgroundColor: 'var(--bg-card)',
+                      transition: 'all 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = 'var(--border-hover)';
+                      e.currentTarget.style.backgroundColor = 'var(--bg-hover)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = 'var(--border-color)';
+                      e.currentTarget.style.backgroundColor = 'var(--bg-card)';
                     }}
                   >
-                    <div style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>
+                    <div style={{ fontWeight: 'bold', marginBottom: '0.5rem', color: 'var(--text-primary)' }}>
                       {type}
                     </div>
-                    <div style={{ fontSize: '1.5rem', color: '#0070f3' }}>
+                    <div style={{ fontSize: '1.5rem', color: 'var(--accent-primary)' }}>
                       {count}
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p style={{ color: '#666', marginTop: '1rem' }}>
+              <p style={{ color: 'var(--text-secondary)', marginTop: '1rem' }}>
                 Aucun objet synchronisé pour le moment
               </p>
             )}
@@ -291,10 +337,20 @@ export default function DashboardPage() {
               style={{
                 display: 'inline-block',
                 padding: '0.75rem 1.5rem',
-                backgroundColor: '#0070f3',
+                backgroundColor: 'var(--accent-primary)',
                 color: 'white',
-                borderRadius: '4px',
+                borderRadius: 'var(--radius-sm)',
                 textDecoration: 'none',
+                transition: 'all 0.2s ease',
+                boxShadow: 'var(--shadow-sm)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--accent-primary-hover)';
+                e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--accent-primary)';
+                e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
               }}
             >
               Voir tous les objets →
@@ -306,11 +362,12 @@ export default function DashboardPage() {
           style={{
             padding: '2rem',
             textAlign: 'center',
-            border: '2px dashed #ddd',
-            borderRadius: '4px',
+            border: '2px dashed var(--border-color)',
+            borderRadius: 'var(--radius-sm)',
+            backgroundColor: 'var(--bg-card)',
           }}
         >
-          <p style={{ marginBottom: '1rem' }}>
+          <p style={{ marginBottom: '1rem', color: 'var(--text-primary)' }}>
             Aucune donnée importée pour le moment.
           </p>
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
@@ -319,11 +376,12 @@ export default function DashboardPage() {
               disabled={extracting || importing}
               style={{
                 padding: '0.75rem 1.5rem',
-                backgroundColor: extracting || importing ? '#ccc' : '#0070f3',
+                backgroundColor: extracting || importing ? 'var(--bg-tertiary)' : 'var(--accent-primary)',
                 color: 'white',
                 border: 'none',
-                borderRadius: '4px',
+                borderRadius: 'var(--radius-sm)',
                 cursor: extracting || importing ? 'not-allowed' : 'pointer',
+                transition: 'all 0.2s ease',
               }}
             >
               {extracting ? 'Extraction...' : '📥 Extraction BizzDesign'}
@@ -333,18 +391,19 @@ export default function DashboardPage() {
               disabled={!hasExtraction || importing || extracting}
               style={{
                 padding: '0.75rem 1.5rem',
-                backgroundColor: !hasExtraction || importing || extracting ? '#ccc' : '#28a745',
+                backgroundColor: !hasExtraction || importing || extracting ? 'var(--bg-tertiary)' : 'var(--accent-success)',
                 color: 'white',
                 border: 'none',
-                borderRadius: '4px',
+                borderRadius: 'var(--radius-sm)',
                 cursor: !hasExtraction || importing || extracting ? 'not-allowed' : 'pointer',
+                transition: 'all 0.2s ease',
               }}
             >
               {importing ? 'Import...' : '💾 Import Neo4j'}
             </button>
           </div>
           {!hasExtraction && (
-            <p style={{ marginTop: '1rem', color: '#666', fontSize: '0.9rem' }}>
+            <p style={{ marginTop: '1rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
               Effectuez d'abord une extraction BizzDesign pour pouvoir importer dans Neo4j.
             </p>
           )}
@@ -367,17 +426,28 @@ function StatCard({
     <div
       style={{
         padding: '1.5rem',
-        border: '1px solid #ddd',
-        borderRadius: '8px',
-        backgroundColor: 'white',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        border: '1px solid var(--border-color)',
+        borderRadius: 'var(--radius-md)',
+        backgroundColor: 'var(--bg-card)',
+        boxShadow: 'var(--shadow-sm)',
+        transition: 'all 0.3s ease',
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'translateY(-4px)';
+        e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+        e.currentTarget.style.borderColor = 'var(--border-hover)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
+        e.currentTarget.style.borderColor = 'var(--border-color)';
       }}
     >
       <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>{icon}</div>
-      <div style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
+      <div style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '0.5rem', color: 'var(--text-primary)' }}>
         {value}
       </div>
-      <div style={{ color: '#666', fontSize: '0.9rem' }}>{title}</div>
+      <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{title}</div>
     </div>
   );
 }

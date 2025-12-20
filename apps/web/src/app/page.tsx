@@ -4,8 +4,8 @@ export default function Home() {
   return (
     <main style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
       <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-        <h1 style={{ fontSize: '3rem', marginBottom: '1rem' }}>BizzAnalyze</h1>
-        <p style={{ fontSize: '1.25rem', color: '#666' }}>
+        <h1 style={{ fontSize: '3rem', marginBottom: '1rem', color: 'var(--text-primary)' }}>BizzAnalyze</h1>
+        <p style={{ fontSize: '1.25rem', color: 'var(--text-secondary)' }}>
           Plateforme d&apos;analyse et de modélisation d&apos;architecture d&apos;entreprise
         </p>
       </div>
@@ -51,19 +51,7 @@ export default function Home() {
       </div>
 
       <div style={{ textAlign: 'center' }}>
-        <Link
-          href="/dashboard"
-          style={{
-            display: 'inline-block',
-            padding: '1rem 2rem',
-            backgroundColor: '#0070f3',
-            color: 'white',
-            borderRadius: '8px',
-            textDecoration: 'none',
-            fontSize: '1.125rem',
-            fontWeight: 'bold',
-          }}
-        >
+        <Link href="/dashboard" className="cta-button">
           Accéder au tableau de bord →
         </Link>
       </div>
@@ -81,18 +69,10 @@ function FeatureCard({
   description: string;
 }) {
   return (
-    <div
-      style={{
-        padding: '2rem',
-        border: '1px solid #ddd',
-        borderRadius: '8px',
-        backgroundColor: 'white',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-      }}
-    >
+    <div className="feature-card">
       <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>{icon}</div>
-      <h3 style={{ marginBottom: '0.5rem' }}>{title}</h3>
-      <p style={{ color: '#666', lineHeight: '1.6' }}>{description}</p>
+      <h3 style={{ marginBottom: '0.5rem', color: 'var(--text-primary)' }}>{title}</h3>
+      <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>{description}</p>
     </div>
   );
 }

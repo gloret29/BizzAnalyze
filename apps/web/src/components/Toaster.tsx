@@ -86,8 +86,8 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
   const getStyles = () => {
     const baseStyles: React.CSSProperties = {
       padding: '1rem 1.5rem',
-      borderRadius: '8px',
-      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+      borderRadius: 'var(--radius-md)',
+      boxShadow: 'var(--shadow-lg)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
@@ -97,31 +97,37 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
       opacity: isVisible ? 1 : 0,
       transform: isVisible ? 'translateX(0)' : 'translateX(100%)',
       transition: 'all 0.3s ease',
-      backgroundColor: 'white',
-      border: '1px solid #ddd',
+      backgroundColor: 'var(--bg-card)',
+      border: '1px solid var(--border-color)',
+      color: 'var(--text-primary)',
+      backdropFilter: 'blur(10px)',
     };
 
     switch (toast.type) {
       case 'success':
         return {
           ...baseStyles,
-          borderLeft: '4px solid #28a745',
+          borderLeft: '4px solid var(--accent-success)',
+          backgroundColor: 'rgba(16, 185, 129, 0.1)',
         };
       case 'error':
         return {
           ...baseStyles,
-          borderLeft: '4px solid #dc3545',
+          borderLeft: '4px solid var(--accent-error)',
+          backgroundColor: 'rgba(239, 68, 68, 0.1)',
         };
       case 'warning':
         return {
           ...baseStyles,
-          borderLeft: '4px solid #ffc107',
+          borderLeft: '4px solid var(--accent-warning)',
+          backgroundColor: 'rgba(245, 158, 11, 0.1)',
         };
       case 'info':
       default:
         return {
           ...baseStyles,
-          borderLeft: '4px solid #0070f3',
+          borderLeft: '4px solid var(--accent-info)',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
         };
     }
   };
@@ -153,13 +159,20 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
           border: 'none',
           fontSize: '1.25rem',
           cursor: 'pointer',
-          color: '#666',
+          color: 'var(--text-secondary)',
           padding: '0',
           width: '24px',
           height: '24px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          transition: 'color 0.2s ease',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.color = 'var(--text-primary)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.color = 'var(--text-secondary)';
         }}
       >
         ×

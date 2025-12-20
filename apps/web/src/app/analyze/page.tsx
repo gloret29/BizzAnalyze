@@ -98,7 +98,7 @@ export default function AnalyzePage() {
 
   return (
     <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
-      <h1>Analyses de graphe</h1>
+      <h1 style={{ color: 'var(--text-primary)' }}>Analyses de graphe</h1>
 
       {/* Sélection du type d'analyse */}
       <div
@@ -113,12 +113,23 @@ export default function AnalyzePage() {
           onClick={() => setAnalysisType('centrality')}
           style={{
             padding: '0.75rem 1.5rem',
-            backgroundColor: analysisType === 'centrality' ? '#0070f3' : '#f0f0f0',
-            color: analysisType === 'centrality' ? 'white' : '#333',
+            backgroundColor: analysisType === 'centrality' ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
+            color: analysisType === 'centrality' ? 'white' : 'var(--text-primary)',
             border: 'none',
-            borderRadius: '4px',
+            borderRadius: 'var(--radius-sm)',
             cursor: 'pointer',
             fontWeight: analysisType === 'centrality' ? 'bold' : 'normal',
+            transition: 'all 0.2s ease',
+          }}
+          onMouseEnter={(e) => {
+            if (analysisType !== 'centrality') {
+              e.currentTarget.style.backgroundColor = 'var(--bg-hover)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (analysisType !== 'centrality') {
+              e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)';
+            }
           }}
         >
           📊 Centralité
@@ -127,12 +138,23 @@ export default function AnalyzePage() {
           onClick={() => setAnalysisType('paths')}
           style={{
             padding: '0.75rem 1.5rem',
-            backgroundColor: analysisType === 'paths' ? '#0070f3' : '#f0f0f0',
-            color: analysisType === 'paths' ? 'white' : '#333',
+            backgroundColor: analysisType === 'paths' ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
+            color: analysisType === 'paths' ? 'white' : 'var(--text-primary)',
             border: 'none',
-            borderRadius: '4px',
+            borderRadius: 'var(--radius-sm)',
             cursor: 'pointer',
             fontWeight: analysisType === 'paths' ? 'bold' : 'normal',
+            transition: 'all 0.2s ease',
+          }}
+          onMouseEnter={(e) => {
+            if (analysisType !== 'paths') {
+              e.currentTarget.style.backgroundColor = 'var(--bg-hover)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (analysisType !== 'paths') {
+              e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)';
+            }
           }}
         >
           🛤️ Chemins
@@ -144,18 +166,18 @@ export default function AnalyzePage() {
         <div
           style={{
             padding: '2rem',
-            backgroundColor: '#f8f9fa',
-            borderRadius: '8px',
-            border: '1px solid #ddd',
+            backgroundColor: 'var(--bg-card)',
+            borderRadius: 'var(--radius-md)',
+            border: '1px solid var(--border-color)',
           }}
         >
-          <h2 style={{ marginTop: 0 }}>Analyse de centralité</h2>
-          <p style={{ color: '#666', marginBottom: '1.5rem' }}>
+          <h2 style={{ marginTop: 0, color: 'var(--text-primary)' }}>Analyse de centralité</h2>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
             Identifie les objets les plus importants dans votre architecture selon différents critères.
           </p>
 
           <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
               Type d'analyse
             </label>
             <div style={{ display: 'flex', gap: '1rem' }}>
@@ -166,9 +188,11 @@ export default function AnalyzePage() {
                   gap: '0.5rem',
                   cursor: 'pointer',
                   padding: '0.5rem 1rem',
-                  border: centralityType === 'degree' ? '2px solid #0070f3' : '2px solid #ddd',
-                  borderRadius: '4px',
-                  backgroundColor: centralityType === 'degree' ? '#e6f2ff' : 'white',
+                  border: centralityType === 'degree' ? '2px solid var(--accent-primary)' : '2px solid var(--border-color)',
+                  borderRadius: 'var(--radius-sm)',
+                  backgroundColor: centralityType === 'degree' ? 'rgba(99, 102, 241, 0.2)' : 'var(--bg-tertiary)',
+                  color: 'var(--text-primary)',
+                  transition: 'all 0.2s ease',
                 }}
               >
                 <input
@@ -187,9 +211,11 @@ export default function AnalyzePage() {
                   gap: '0.5rem',
                   cursor: 'pointer',
                   padding: '0.5rem 1rem',
-                  border: centralityType === 'pagerank' ? '2px solid #0070f3' : '2px solid #ddd',
-                  borderRadius: '4px',
-                  backgroundColor: centralityType === 'pagerank' ? '#e6f2ff' : 'white',
+                  border: centralityType === 'pagerank' ? '2px solid var(--accent-primary)' : '2px solid var(--border-color)',
+                  borderRadius: 'var(--radius-sm)',
+                  backgroundColor: centralityType === 'pagerank' ? 'rgba(99, 102, 241, 0.2)' : 'var(--bg-tertiary)',
+                  color: 'var(--text-primary)',
+                  transition: 'all 0.2s ease',
                 }}
               >
                 <input
@@ -209,13 +235,24 @@ export default function AnalyzePage() {
             disabled={analyzing}
             style={{
               padding: '0.75rem 2rem',
-              backgroundColor: analyzing ? '#ccc' : '#0070f3',
+              backgroundColor: analyzing ? 'var(--bg-tertiary)' : 'var(--accent-primary)',
               color: 'white',
               border: 'none',
-              borderRadius: '4px',
+              borderRadius: 'var(--radius-sm)',
               cursor: analyzing ? 'not-allowed' : 'pointer',
               fontSize: '1rem',
               fontWeight: 'bold',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              if (!analyzing) {
+                e.currentTarget.style.backgroundColor = 'var(--accent-primary-hover)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!analyzing) {
+                e.currentTarget.style.backgroundColor = 'var(--accent-primary)';
+              }
             }}
           >
             {analyzing ? '⏳ Analyse en cours...' : '▶️ Lancer l\'analyse'}
@@ -224,32 +261,33 @@ export default function AnalyzePage() {
           {/* Résultats */}
           {centralityResults && (
             <div style={{ marginTop: '2rem' }}>
-              <h3>Résultats (Top 20)</h3>
+              <h3 style={{ color: 'var(--text-primary)' }}>Résultats (Top 20)</h3>
               <div
                 style={{
                   marginTop: '1rem',
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: 'var(--radius-sm)',
                   overflow: 'auto',
                   maxHeight: '600px',
+                  backgroundColor: 'var(--bg-tertiary)',
                 }}
               >
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
-                    <tr style={{ backgroundColor: '#f0f0f0', position: 'sticky', top: 0 }}>
-                      <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid #ddd' }}>
+                    <tr style={{ backgroundColor: 'var(--bg-card)', position: 'sticky', top: 0 }}>
+                      <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid var(--border-color)', color: 'var(--text-primary)' }}>
                         Rang
                       </th>
-                      <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid #ddd' }}>
+                      <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid var(--border-color)', color: 'var(--text-primary)' }}>
                         Nom
                       </th>
-                      <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid #ddd' }}>
+                      <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid var(--border-color)', color: 'var(--text-primary)' }}>
                         Type
                       </th>
-                      <th style={{ padding: '0.75rem', textAlign: 'right', borderBottom: '2px solid #ddd' }}>
+                      <th style={{ padding: '0.75rem', textAlign: 'right', borderBottom: '2px solid var(--border-color)', color: 'var(--text-primary)' }}>
                         Score
                       </th>
-                      <th style={{ padding: '0.75rem', textAlign: 'center', borderBottom: '2px solid #ddd' }}>
+                      <th style={{ padding: '0.75rem', textAlign: 'center', borderBottom: '2px solid var(--border-color)', color: 'var(--text-primary)' }}>
                         Actions
                       </th>
                     </tr>
@@ -259,25 +297,25 @@ export default function AnalyzePage() {
                       <tr
                         key={result.nodeId}
                         style={{
-                          borderBottom: '1px solid #eee',
-                          backgroundColor: index % 2 === 0 ? 'white' : '#f9f9f9',
+                          borderBottom: '1px solid var(--border-color)',
+                          backgroundColor: index % 2 === 0 ? 'var(--bg-tertiary)' : 'var(--bg-card)',
                         }}
                       >
-                        <td style={{ padding: '0.75rem' }}>#{index + 1}</td>
-                        <td style={{ padding: '0.75rem', fontWeight: 'bold' }}>
+                        <td style={{ padding: '0.75rem', color: 'var(--text-primary)' }}>#{index + 1}</td>
+                        <td style={{ padding: '0.75rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
                           {result.nodeName}
                         </td>
-                        <td style={{ padding: '0.75rem', color: '#666', fontSize: '0.9rem' }}>
+                        <td style={{ padding: '0.75rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
                           {result.nodeType}
                         </td>
-                        <td style={{ padding: '0.75rem', textAlign: 'right', fontFamily: 'monospace' }}>
+                        <td style={{ padding: '0.75rem', textAlign: 'right', fontFamily: 'monospace', color: 'var(--text-primary)' }}>
                           {result.score.toFixed(2)}
                         </td>
                         <td style={{ padding: '0.75rem', textAlign: 'center' }}>
                           <Link
                             href={`/objects/${result.nodeId}`}
                             style={{
-                              color: '#0070f3',
+                              color: 'var(--accent-primary)',
                               textDecoration: 'none',
                               fontSize: '0.9rem',
                             }}
@@ -300,19 +338,19 @@ export default function AnalyzePage() {
         <div
           style={{
             padding: '2rem',
-            backgroundColor: '#f8f9fa',
-            borderRadius: '8px',
-            border: '1px solid #ddd',
+            backgroundColor: 'var(--bg-card)',
+            borderRadius: 'var(--radius-md)',
+            border: '1px solid var(--border-color)',
           }}
         >
-          <h2 style={{ marginTop: 0 }}>Analyse de chemins</h2>
-          <p style={{ color: '#666', marginBottom: '1.5rem' }}>
+          <h2 style={{ marginTop: 0, color: 'var(--text-primary)' }}>Analyse de chemins</h2>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
             Trouve les chemins entre deux objets dans votre architecture.
           </p>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
             <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
                 ID Source
               </label>
               <input
@@ -323,13 +361,15 @@ export default function AnalyzePage() {
                 style={{
                   width: '100%',
                   padding: '0.5rem',
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: 'var(--radius-sm)',
+                  backgroundColor: 'var(--bg-tertiary)',
+                  color: 'var(--text-primary)',
                 }}
               />
             </div>
             <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
                 ID Target
               </label>
               <input
@@ -340,8 +380,10 @@ export default function AnalyzePage() {
                 style={{
                   width: '100%',
                   padding: '0.5rem',
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: 'var(--radius-sm)',
+                  backgroundColor: 'var(--bg-tertiary)',
+                  color: 'var(--text-primary)',
                 }}
               />
             </div>
@@ -349,7 +391,7 @@ export default function AnalyzePage() {
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
             <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
                 Profondeur max
               </label>
               <input
@@ -361,8 +403,10 @@ export default function AnalyzePage() {
                 style={{
                   width: '100%',
                   padding: '0.5rem',
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: 'var(--radius-sm)',
+                  backgroundColor: 'var(--bg-tertiary)',
+                  color: 'var(--text-primary)',
                 }}
               />
             </div>
@@ -374,6 +418,7 @@ export default function AnalyzePage() {
                   gap: '0.5rem',
                   cursor: 'pointer',
                   marginBottom: '0.5rem',
+                  color: 'var(--text-primary)',
                 }}
               >
                 <input
@@ -391,13 +436,24 @@ export default function AnalyzePage() {
             disabled={analyzing || !sourceId || !targetId}
             style={{
               padding: '0.75rem 2rem',
-              backgroundColor: analyzing || !sourceId || !targetId ? '#ccc' : '#0070f3',
+              backgroundColor: analyzing || !sourceId || !targetId ? 'var(--bg-tertiary)' : 'var(--accent-primary)',
               color: 'white',
               border: 'none',
-              borderRadius: '4px',
+              borderRadius: 'var(--radius-sm)',
               cursor: analyzing || !sourceId || !targetId ? 'not-allowed' : 'pointer',
               fontSize: '1rem',
               fontWeight: 'bold',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              if (!analyzing && sourceId && targetId) {
+                e.currentTarget.style.backgroundColor = 'var(--accent-primary-hover)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!analyzing && sourceId && targetId) {
+                e.currentTarget.style.backgroundColor = 'var(--accent-primary)';
+              }
             }}
           >
             {analyzing ? '⏳ Recherche en cours...' : '▶️ Chercher le(s) chemin(s)'}
@@ -408,26 +464,26 @@ export default function AnalyzePage() {
             <div style={{ marginTop: '2rem' }}>
               {findAll && pathResults.paths ? (
                 <>
-                  <h3>{pathResults.paths.length} chemin(s) trouvé(s)</h3>
+                  <h3 style={{ color: 'var(--text-primary)' }}>{pathResults.paths.length} chemin(s) trouvé(s)</h3>
                   {pathResults.paths.map((path: any, index: number) => (
                     <div
                       key={index}
                       style={{
                         marginTop: '1rem',
                         padding: '1rem',
-                        backgroundColor: 'white',
-                        border: '1px solid #ddd',
-                        borderRadius: '4px',
+                        backgroundColor: 'var(--bg-card)',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: 'var(--radius-sm)',
                       }}
                     >
-                      <strong>Chemin #{index + 1}</strong> (longueur: {path.length})
-                      <div style={{ marginTop: '0.5rem', color: '#666', fontSize: '0.9rem' }}>
+                      <strong style={{ color: 'var(--text-primary)' }}>Chemin #{index + 1}</strong> (longueur: {path.length})
+                      <div style={{ marginTop: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
                         {path.nodes.map((node: any, i: number) => (
                           <span key={node.id}>
                             {i > 0 && ' → '}
                             <Link
                               href={`/objects/${node.id}`}
-                              style={{ color: '#0070f3', textDecoration: 'none' }}
+                              style={{ color: 'var(--accent-primary)', textDecoration: 'none' }}
                             >
                               {node.name || node.id}
                             </Link>
@@ -439,24 +495,24 @@ export default function AnalyzePage() {
                 </>
               ) : pathResults.path ? (
                 <>
-                  <h3>Chemin trouvé</h3>
+                  <h3 style={{ color: 'var(--text-primary)' }}>Chemin trouvé</h3>
                   <div
                     style={{
                       marginTop: '1rem',
                       padding: '1rem',
-                      backgroundColor: 'white',
-                      border: '1px solid #ddd',
-                      borderRadius: '4px',
+                      backgroundColor: 'var(--bg-card)',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: 'var(--radius-sm)',
                     }}
                   >
-                    <strong>Longueur:</strong> {pathResults.path.length} relation(s)
-                    <div style={{ marginTop: '0.5rem', color: '#666', fontSize: '0.9rem' }}>
+                    <strong style={{ color: 'var(--text-primary)' }}>Longueur:</strong> {pathResults.path.length} relation(s)
+                    <div style={{ marginTop: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
                       {pathResults.path.nodes.map((node: any, i: number) => (
                         <span key={node.id}>
                           {i > 0 && ' → '}
                           <Link
                             href={`/objects/${node.id}`}
-                            style={{ color: '#0070f3', textDecoration: 'none' }}
+                            style={{ color: 'var(--accent-primary)', textDecoration: 'none' }}
                           >
                             {node.name || node.id}
                           </Link>
@@ -470,10 +526,10 @@ export default function AnalyzePage() {
                   style={{
                     marginTop: '1rem',
                     padding: '1rem',
-                    backgroundColor: '#fff3cd',
-                    border: '1px solid #ffc107',
-                    borderRadius: '4px',
-                    color: '#856404',
+                    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                    border: '1px solid var(--accent-warning)',
+                    borderRadius: 'var(--radius-sm)',
+                    color: 'var(--accent-warning)',
                   }}
                 >
                   Aucun chemin trouvé entre ces deux objets.
@@ -486,6 +542,9 @@ export default function AnalyzePage() {
     </div>
   );
 }
+
+
+
 
 
 

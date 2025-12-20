@@ -82,12 +82,12 @@ export default function ObjectsPage() {
           marginBottom: '2rem',
         }}
       >
-        <h1>Objets</h1>
+        <h1 style={{ color: 'var(--text-primary)' }}>Objets</h1>
         <Link
           href="/dashboard"
           style={{
             padding: '0.5rem 1rem',
-            color: '#0070f3',
+            color: 'var(--accent-primary)',
             textDecoration: 'none',
           }}
         >
@@ -99,9 +99,10 @@ export default function ObjectsPage() {
       <div
         style={{
           padding: '1.5rem',
-          backgroundColor: '#f9f9f9',
-          borderRadius: '8px',
+          backgroundColor: 'var(--bg-card)',
+          borderRadius: 'var(--radius-md)',
           marginBottom: '2rem',
+          border: '1px solid var(--border-color)',
         }}
       >
         <form onSubmit={handleSearch} style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
@@ -114,9 +115,11 @@ export default function ObjectsPage() {
               flex: '1',
               minWidth: '200px',
               padding: '0.75rem',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
+              border: '1px solid var(--border-color)',
+              borderRadius: 'var(--radius-sm)',
               fontSize: '1rem',
+              backgroundColor: 'var(--bg-tertiary)',
+              color: 'var(--text-primary)',
             }}
           />
           <select
@@ -127,9 +130,11 @@ export default function ObjectsPage() {
             }}
             style={{
               padding: '0.75rem',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
+              border: '1px solid var(--border-color)',
+              borderRadius: 'var(--radius-sm)',
               fontSize: '1rem',
+              backgroundColor: 'var(--bg-tertiary)',
+              color: 'var(--text-primary)',
             }}
           >
             <option value="">Tous les types</option>
@@ -143,12 +148,19 @@ export default function ObjectsPage() {
             type="submit"
             style={{
               padding: '0.75rem 1.5rem',
-              backgroundColor: '#0070f3',
+              backgroundColor: 'var(--accent-primary)',
               color: 'white',
               border: 'none',
-              borderRadius: '4px',
+              borderRadius: 'var(--radius-sm)',
               cursor: 'pointer',
               fontSize: '1rem',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--accent-primary-hover)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--accent-primary)';
             }}
           >
             Rechercher
@@ -160,10 +172,11 @@ export default function ObjectsPage() {
         <div
           style={{
             padding: '1rem',
-            backgroundColor: '#fee',
-            border: '1px solid #fcc',
-            borderRadius: '4px',
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            border: '1px solid var(--accent-error)',
+            borderRadius: 'var(--radius-sm)',
             marginBottom: '1rem',
+            color: 'var(--text-primary)',
           }}
         >
           <strong>Erreur :</strong> {error}
@@ -171,7 +184,7 @@ export default function ObjectsPage() {
       )}
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '2rem' }}>
+        <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-primary)' }}>
           <p>Chargement...</p>
         </div>
       ) : objects.length === 0 ? (
@@ -179,15 +192,17 @@ export default function ObjectsPage() {
           style={{
             padding: '2rem',
             textAlign: 'center',
-            border: '2px dashed #ddd',
-            borderRadius: '4px',
+            border: '2px dashed var(--border-color)',
+            borderRadius: 'var(--radius-sm)',
+            backgroundColor: 'var(--bg-card)',
+            color: 'var(--text-primary)',
           }}
         >
           <p>Aucun objet trouvé.</p>
         </div>
       ) : (
         <>
-          <div style={{ marginBottom: '1rem', color: '#666' }}>
+          <div style={{ marginBottom: '1rem', color: 'var(--text-secondary)' }}>
             {total} objet{total > 1 ? 's' : ''} trouvé{total > 1 ? 's' : ''}
           </div>
 
@@ -205,18 +220,22 @@ export default function ObjectsPage() {
                 style={{
                   display: 'block',
                   padding: '1.5rem',
-                  border: '1px solid #ddd',
-                  borderRadius: '8px',
-                  backgroundColor: 'white',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: 'var(--radius-md)',
+                  backgroundColor: 'var(--bg-card)',
                   textDecoration: 'none',
                   color: 'inherit',
-                  transition: 'box-shadow 0.2s',
+                  transition: 'all 0.2s ease',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+                  e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+                  e.currentTarget.style.borderColor = 'var(--border-hover)';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.borderColor = 'var(--border-color)';
+                  e.currentTarget.style.transform = 'translateY(0)';
                 }}
               >
                 <div
@@ -227,12 +246,12 @@ export default function ObjectsPage() {
                     marginBottom: '0.5rem',
                   }}
                 >
-                  <h3 style={{ margin: 0, color: '#0070f3' }}>{obj.objectName || obj.name}</h3>
+                  <h3 style={{ margin: 0, color: 'var(--accent-primary)' }}>{obj.objectName || obj.name}</h3>
                   <span
                     style={{
                       padding: '0.25rem 0.75rem',
-                      backgroundColor: '#e3f2fd',
-                      color: '#1976d2',
+                      backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                      color: 'var(--accent-primary)',
                       borderRadius: '12px',
                       fontSize: '0.875rem',
                     }}
@@ -244,7 +263,7 @@ export default function ObjectsPage() {
                   <p
                     style={{
                       margin: '0.5rem 0 0 0',
-                      color: '#666',
+                      color: 'var(--text-secondary)',
                       fontSize: '0.9rem',
                     }}
                   >
@@ -257,7 +276,7 @@ export default function ObjectsPage() {
                   style={{
                     marginTop: '0.5rem',
                     fontSize: '0.875rem',
-                    color: '#999',
+                    color: 'var(--text-tertiary)',
                   }}
                 >
                   ID: {obj.id}
@@ -281,16 +300,27 @@ export default function ObjectsPage() {
                 disabled={page === 0}
                 style={{
                   padding: '0.5rem 1rem',
-                  backgroundColor: page === 0 ? '#ccc' : '#0070f3',
+                  backgroundColor: page === 0 ? 'var(--bg-tertiary)' : 'var(--accent-primary)',
                   color: 'white',
                   border: 'none',
-                  borderRadius: '4px',
+                  borderRadius: 'var(--radius-sm)',
                   cursor: page === 0 ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  if (page !== 0) {
+                    e.currentTarget.style.backgroundColor = 'var(--accent-primary-hover)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (page !== 0) {
+                    e.currentTarget.style.backgroundColor = 'var(--accent-primary)';
+                  }
                 }}
               >
                 Précédent
               </button>
-              <span>
+              <span style={{ color: 'var(--text-primary)' }}>
                 Page {page + 1} sur {totalPages}
               </span>
               <button
@@ -298,11 +328,22 @@ export default function ObjectsPage() {
                 disabled={page >= totalPages - 1}
                 style={{
                   padding: '0.5rem 1rem',
-                  backgroundColor: page >= totalPages - 1 ? '#ccc' : '#0070f3',
+                  backgroundColor: page >= totalPages - 1 ? 'var(--bg-tertiary)' : 'var(--accent-primary)',
                   color: 'white',
                   border: 'none',
-                  borderRadius: '4px',
+                  borderRadius: 'var(--radius-sm)',
                   cursor: page >= totalPages - 1 ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  if (page < totalPages - 1) {
+                    e.currentTarget.style.backgroundColor = 'var(--accent-primary-hover)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (page < totalPages - 1) {
+                    e.currentTarget.style.backgroundColor = 'var(--accent-primary)';
+                  }
                 }}
               >
                 Suivant
