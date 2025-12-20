@@ -70,22 +70,22 @@ export function BizzDesignConsole() {
   };
 
   const getStatusColor = (log: ApiCallLog) => {
-    if (!log.success) return '#dc3545';
+    if (!log.success) return 'var(--accent-error)';
     if (log.status) {
-      if (log.status >= 200 && log.status < 300) return '#28a745';
-      if (log.status >= 300 && log.status < 400) return '#ffc107';
-      if (log.status >= 400) return '#dc3545';
+      if (log.status >= 200 && log.status < 300) return 'var(--accent-success)';
+      if (log.status >= 300 && log.status < 400) return 'var(--accent-warning)';
+      if (log.status >= 400) return 'var(--accent-error)';
     }
-    return '#6c757d';
+    return 'var(--text-tertiary)';
   };
 
   const getMethodColor = (method: string) => {
     switch (method.toUpperCase()) {
-      case 'GET': return '#0070f3';
-      case 'POST': return '#28a745';
-      case 'PUT': return '#ffc107';
-      case 'DELETE': return '#dc3545';
-      default: return '#6c757d';
+      case 'GET': return 'var(--accent-primary)';
+      case 'POST': return 'var(--accent-success)';
+      case 'PUT': return 'var(--accent-warning)';
+      case 'DELETE': return 'var(--accent-error)';
+      default: return 'var(--text-secondary)';
     }
   };
 
@@ -100,15 +100,21 @@ export function BizzDesignConsole() {
           right: '20px',
           zIndex: 9999,
           padding: '0.75rem 1rem',
-          backgroundColor: '#0070f3',
+          backgroundColor: 'var(--accent-primary)',
           color: 'white',
           border: 'none',
-          borderRadius: '8px 8px 0 0',
+          borderRadius: 'var(--radius-md) var(--radius-md) 0 0',
           cursor: 'pointer',
-          boxShadow: '0 -2px 8px rgba(0,0,0,0.15)',
+          boxShadow: 'var(--shadow-md)',
           fontSize: '0.875rem',
           fontWeight: 'bold',
-          transition: 'bottom 0.3s ease',
+          transition: 'all 0.3s ease',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = 'var(--accent-primary-hover)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = 'var(--accent-primary)';
         }}
       >
         {isOpen ? '▼' : '▲'} Console API BizzDesign {logs.length > 0 && `(${logs.length})`}
@@ -123,9 +129,9 @@ export function BizzDesignConsole() {
             left: 0,
             right: 0,
             height: '300px',
-            backgroundColor: '#1e1e1e',
-            color: '#d4d4d4',
-            borderTop: '2px solid #0070f3',
+            backgroundColor: 'var(--bg-primary)',
+            color: 'var(--text-primary)',
+            borderTop: '2px solid var(--accent-primary)',
             zIndex: 9998,
             display: 'flex',
             flexDirection: 'column',
@@ -137,34 +143,41 @@ export function BizzDesignConsole() {
           <div
             style={{
               padding: '0.5rem 1rem',
-              backgroundColor: '#252526',
-              borderBottom: '1px solid #3e3e42',
+              backgroundColor: 'var(--bg-card)',
+              borderBottom: '1px solid var(--border-color)',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
             }}
           >
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-              <span style={{ fontWeight: 'bold', color: '#0070f3' }}>
+              <span style={{ fontWeight: 'bold', color: 'var(--accent-primary)' }}>
                 🔌 Console API BizzDesign
               </span>
-              {isLoading && <span style={{ color: '#6c757d' }}>Chargement...</span>}
+              {isLoading && <span style={{ color: 'var(--text-tertiary)' }}>Chargement...</span>}
               <button
                 onClick={loadLogs}
                 style={{
                   padding: '0.25rem 0.5rem',
-                  backgroundColor: '#3e3e42',
-                  color: '#d4d4d4',
-                  border: '1px solid #555',
-                  borderRadius: '4px',
+                  backgroundColor: 'var(--bg-tertiary)',
+                  color: 'var(--text-primary)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: 'var(--radius-sm)',
                   cursor: 'pointer',
                   fontSize: '0.75rem',
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--bg-hover)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)';
                 }}
               >
                 🔄 Actualiser
               </button>
             </div>
-            <div style={{ color: '#6c757d', fontSize: '0.75rem' }}>
+            <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>
               {logs.length} appel{logs.length > 1 ? 's' : ''}
             </div>
           </div>
@@ -178,7 +191,7 @@ export function BizzDesignConsole() {
             }}
           >
             {logs.length === 0 ? (
-              <div style={{ padding: '1rem', color: '#6c757d', textAlign: 'center' }}>
+              <div style={{ padding: '1rem', color: 'var(--text-tertiary)', textAlign: 'center' }}>
                 Aucun appel API BizzDesign pour le moment
               </div>
             ) : (
@@ -188,14 +201,14 @@ export function BizzDesignConsole() {
                   style={{
                     padding: '0.5rem',
                     marginBottom: '0.25rem',
-                    backgroundColor: index % 2 === 0 ? '#252526' : '#1e1e1e',
-                    borderRadius: '4px',
+                    backgroundColor: index % 2 === 0 ? 'var(--bg-card)' : 'var(--bg-secondary)',
+                    borderRadius: 'var(--radius-sm)',
                     borderLeft: `3px solid ${getStatusColor(log)}`,
                   }}
                 >
                   <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
                     {/* Timestamp */}
-                    <span style={{ color: '#6c757d', minWidth: '100px' }}>
+                    <span style={{ color: 'var(--text-tertiary)', minWidth: '100px' }}>
                       {formatTimestamp(log.timestamp)}
                     </span>
 
@@ -214,7 +227,7 @@ export function BizzDesignConsole() {
                     <span
                       style={{
                         flex: 1,
-                        color: '#d4d4d4',
+                        color: 'var(--text-primary)',
                         wordBreak: 'break-all',
                         minWidth: '200px',
                       }}
@@ -226,11 +239,11 @@ export function BizzDesignConsole() {
                     {log.params && (log.params.offset !== undefined || log.params.limit !== undefined) && (
                       <span
                         style={{
-                          color: '#9cdcfe',
+                          color: 'var(--accent-info)',
                           fontSize: '0.75rem',
                           padding: '0.25rem 0.5rem',
-                          backgroundColor: '#2d2d30',
-                          borderRadius: '4px',
+                          backgroundColor: 'var(--bg-tertiary)',
+                          borderRadius: 'var(--radius-sm)',
                           minWidth: '120px',
                         }}
                       >
@@ -257,7 +270,7 @@ export function BizzDesignConsole() {
                     {/* Durée */}
                     <span
                       style={{
-                        color: log.duration && log.duration > 1000 ? '#ffc107' : '#6c757d',
+                        color: log.duration && log.duration > 1000 ? 'var(--accent-warning)' : 'var(--text-tertiary)',
                         minWidth: '60px',
                         textAlign: 'right',
                       }}
@@ -277,15 +290,16 @@ export function BizzDesignConsole() {
                       style={{
                         marginTop: '0.25rem',
                         padding: '0.25rem 0.5rem',
-                        backgroundColor: '#1e3a5f',
-                        color: '#9cdcfe',
-                        borderRadius: '4px',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        color: 'var(--accent-info)',
+                        borderRadius: 'var(--radius-sm)',
                         fontSize: '0.75rem',
                         fontFamily: 'monospace',
                         whiteSpace: 'pre-wrap',
                         wordBreak: 'break-all',
                         maxHeight: '200px',
                         overflowY: 'auto',
+                        border: '1px solid var(--border-color)',
                       }}
                     >
                       <strong>Body:</strong>{' '}
@@ -301,19 +315,19 @@ export function BizzDesignConsole() {
                       style={{
                         marginTop: '0.25rem',
                         padding: '0.5rem',
-                        backgroundColor: '#2d2d2d',
-                        color: '#d4d4d4',
-                        borderRadius: '4px',
+                        backgroundColor: 'var(--bg-tertiary)',
+                        color: 'var(--text-primary)',
+                        borderRadius: 'var(--radius-sm)',
                         fontSize: '0.75rem',
                         fontFamily: 'monospace',
                         whiteSpace: 'pre-wrap',
                         wordBreak: 'break-all',
                         maxHeight: '300px',
                         overflowY: 'auto',
-                        border: '1px solid #555',
+                        border: '1px solid var(--border-color)',
                       }}
                     >
-                      <strong style={{ color: '#4ec9b0' }}>📋 curl:</strong>
+                      <strong style={{ color: 'var(--accent-success)' }}>📋 curl:</strong>
                       <div style={{ marginTop: '0.25rem' }}>{log.curl}</div>
                     </div>
                   )}
@@ -324,10 +338,11 @@ export function BizzDesignConsole() {
                       style={{
                         marginTop: '0.25rem',
                         padding: '0.25rem 0.5rem',
-                        backgroundColor: '#3a1f1f',
-                        color: '#ff6b6b',
-                        borderRadius: '4px',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        color: 'var(--accent-error)',
+                        borderRadius: 'var(--radius-sm)',
                         fontSize: '0.75rem',
+                        border: '1px solid var(--accent-error)',
                       }}
                     >
                       {log.error}

@@ -1,0 +1,3360 @@
+openapi: 3.0.3
+info:
+  title: Bizzdesign Open API - 3
+  description: |-
+     <small>Please note that this document refers to <i>data blocks</i>, which is the new term for what was previously referred to as <i>documents</i>. Similarly, the term <i>schema</i> was superseded by <i>data block definition</i></small><p>Bizzdesign Enterprise Studio allows invited users to collaboratively model architectural structural objects, store these on Horizzon, and publish them to selected user groups.<br><br> Part of this collaborative process is managing a set of properties for each modeled object. Property values are assigned in Enterprise Studio, and stored with the object on Horizzon. Horizzon will display their values with the object, but does not allow changing them.</p> <p>This API allows clients to:<ul><li>extend and enrich architectures managed by the Bizzdesign toolset</li> <li>set up data policies to manage the access to and maintenance of data blocks</li> <li>retrieve Horizzon event log information</li></ul></p> <h3><u>Data enrichment</u></h3><p>On top of these read-only properties Horizzon supports additional object attributes of which the values can be edited in Horizzon and in Enterprise Studio. These attributes are defined in a <i>data block definition</i>, of which instances (aka <i>data blocks</i>) can be attached to architectural structural elements. This API allows an authorized client application to directly create, modify and delete data block definitions and data blocks, enriching the architecture with additional data.</p><h3><u>Architecture automation</u></h3><p>The architecture managed by the Bizzdesign toolset can also be extended with architectural elements that are managed outside of this toolset. This API allows an authorized client application to add <i>collections</i> of <i>entities</i> and <i>links</i> from an external source, and incorporate them seamlessly in an architecture managed in Enterprise Studio. These entities themselves can be assigned additional properties using data enrichment.</p><small>Please note that all calls to this API may be subject to <i>rate limiting</i>, causing them to return a 429 status code (&quot;Too Many Requests&quot;). </small><h3><u>Data policies</u></h3><p>Data policies are used to define rules for accessing and maintaining the content of a data block. This allows users and groups with the contributor role to be assigned as <i>editors</i> for data blocks as well as users and groups with the consumer role to be assigned as <i>readers</i> for data blocks. Optionally, data blocks can also be assigned an <i>update schedule</i> which will generate periodic <i>data tasks</i> prompting editors to maintain that data block.</p> <h4>Editors and Readers</h4> <p>Users and groups may be assigned as <i>editors</i>, which will allow them to view and modify data block content, or as <i>readers</i>, which will allow them to only view data block content. This API allows assigning editors and readers at the model level for a specific object type and a specific data block definition, or at the object level for a specific data block data definition. Editors and readers assigned at object level override those set at model level.</p> <h4>Update schedules</h4> <p>A data block may be assigned a schedule that indicates when and how often the content of the data block should be updated by its editors. When a schedule is assigned, <i>data maintenance</i> workflows will be created within the system, and <i>data tasks</i> will be generated that prompt the editors to verify and update the contents of the data block.</p><h3><u>Audit event logging</u></h3><p>Important events in Horizzon are logged and stored for easy retrieval and inspection. These include system events, external events, and user-generated events. The Open API can be used to access the Horizzon events audit log information.</p>
+  contact:
+    name: Bizzdesign
+    url: https://bizzdesign.com/
+  version: 3.0.0
+servers:
+- url: /api/3.0
+tags:
+- name: repository
+  description: A <b>repository</b> hosts a <i>model package</i> (aka 'master' collaboration), <i>projects</i> based on this model package (if applicable), and <i>collections</i> (if applicable). A collection is available in all collaborations in the repository. Note that projects are not available in this API, the objects managed by Enterprise Studio in the repository are the objects of the model package.
+- name: objects
+  description: An <b>object</b> represents any object in a repository, for example a <i>model</i>, <i>scheme</i>, <i>element</i> or <i>relation</i> (managed in Enterprise Studio in the model package in the repository), or <i>collection</i>, <i>container</i>, <i>entity</i> or <i>link</i> (managed outside of Enterprise Studio). The endpoints in this section take <i>internal IDs</i> to address an object, even for those that have an <i>external ID</i> assigned to them.
+- name: data block definition
+  description: A <b>data block definition</b> describes a group of attributes that can be instantiated (as a <i>data block</i>) and linked to an <i>object</i>. It is applicable to a single <i>repository</i>, and identified using a <i>namespace</i> and <i>name</i>.
+- name: data block
+  description: A <b>data block</b> is a group of attribute values that conforms to a <i>data block definition</i> and is associated with an <i>object</i>.
+- name: collection
+  description: A <b>collection</b> is home to objects managed outside of Enterprise Studio, and is equivalent to a <i>model</i> in Enterprise Studio managed architecture. The endpoints in this section use <i>IDs</i> to address collections, which can either be an <i>internal ID</i> or <i>external ID</i>.
+- name: container
+  description: A <b>container</b> is a subdivision of a <i>collection</i>, equivalent to a <i>scheme</i> in Enterprise Studio managed architecture. It contains entities belonging to a specific domain, and links. The number of objects in a container is limited to 5000. The endpoints in this section use <i>IDs</i> to address containers, which can either be an <i>internal ID</i> or <i>external ID</i>.
+- name: entity
+  description: An <b>entity</b> represents a structural element, and is equivalent to an <i>element</i> in Enterprise Studio managed architecture. The endpoints in this section use <i>IDs</i> to address entities, which can either be an <i>internal ID</i> or <i>external ID</i>.
+- name: link
+  description: A <b>link</b> represents a relationship between two <i>entities</i>, or an <i>entity</i> and an <i>object</i>. It is equivalent to a <i>relation</i> in Enterprise Studio managed architecture. The number of links attached to an entity is limited to 500. The endpoints in this section use <i>IDs</i> to address links, which can either be an <i>internal ID</i> or <i>external ID</i>.
+- name: entity data block
+  description: The endpoints in this section allow the retrieval, creation, update, and deletion of <i>data blocks</i> on <i>entities</i>. Unlike the endpoints in the <i>objects</i> section, the endpoints in this section use <i>IDs</i> to address entities, which can either be an <i>internal ID</i> or <i>external ID</i>.
+- name: link data block
+  description: The endpoints in this section allow the retrieval, creation, update, and deletion of <i>data blocks</i> on <i>links</i>. Unlike the endpoints in the <i>objects</i> section, the endpoints in this section use <i>IDs</i> to address links, which can either be an <i>internal ID</i> or <i>external ID</i>.
+- name: bulk
+  description: The endpoints in this section allow creating, updating, and deleting multiple entities or links at once. They use <i>IDs</i> to address these objects, which can either be an <i>internal ID</i> or <i>external ID</i>.
+- name: editor
+  description: <b>Editors</b> are users or groups that are allowed to view and modify data blocks. They can be assigned at the model level for a specific object type and a specific data block, or at the object level for a specific data block. Editors assigned at object level override those set at model level.<p><i>(Please note that by default only a maximum of 8 users and/or groups may be assigned as editors per data policy. If this limit is exceeded, a 400 "Bad Request" status code will be returned.)</i></p>
+- name: reader
+  description: <b>Readers</b> are users or groups that are allowed to view data blocks. They can be assigned at the model level for a specific object type and a specific data block, or at the object level for a specific data block. Readers assigned at object level override those set at model level.<p><i>(Please note that by default only a maximum of 8 users and/or groups may be assigned as readers per data policy. If this limit is exceeded, a 400 "Bad Request" status code will be returned.)</i></p>
+- name: data update schedule
+  description: A <b>data update schedule</b> defines when and how often data blocks should be updated. A start date and a repeat pattern is specified for a given data block on a given object.
+    Once created, data tasks will be assigned to all editors of the given data block.<p><i>(Please note that there may be a limit to the number of schedules that can be stored, depending on the system configuration. If this limit is exceeded, a 403 "Forbidden" status code will be returned, detailing the exact limit.) </i></p>
+- name: audit events
+  description: Horizzon keeps track of important events in an <b>audit log</b>. Audit events can only be retrieved by Open API clients with <i>admin</i> permissions.
+paths:
+  /repositories:
+    get:
+      tags:
+      - repository
+      summary: Retrieve all repositories
+      description: Retrieve all available repositories.
+      operationId: getRepositories
+      responses:
+        200:
+          description: The request was successful. The response body contains a JSON array of JSON objects representing the repositories.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Repositories'
+        401:
+          $ref: '#/components/responses/401'
+  /repositories/{repositoryId}/objects:
+    get:
+      tags:
+      - objects
+      summary: Retrieve all objects
+      description: Retrieve a list of all objects located in the repository specified. Various parameters are available for filtering and the inclusion of additional information.
+      operationId: getObjects
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - name: modelId
+        in: query
+        description: An internal ID (UUID) that identifies a parent model or collection (cannot be combined with <i>schemeId</i>).
+        schema:
+          type: string
+        example: '1b65946f-461f-eb11-82d0-066d32674111'
+      - name: schemeId
+        in: query
+        description: An internal ID (UUID) that identifies a parent scheme or container (cannot be combined with <i>modelId</i>).
+        schema:
+          type: string
+        example: '3a65946f-461f-eb11-82d0-066d32674111'
+      - name: type
+        in: query
+        description: The fully qualified type of the objects to retrieve.
+        schema:
+          type: string
+        example: 'ArchiMate:ApplicationComponent'
+      - name: updatedAfter
+        in: query
+        description: A date/time in ISO format. Only objects that were updated after this moment are returned. Please note that an object is considered updated when either the object itself, or any of its associated data blocks was updated.
+        schema:
+          type: string
+        example: '2020-03-21T16:49:31.427Z'
+      - name: includeMetrics
+        in: query
+        description: When true, metric values (if applicable) will be included with each object returned. (Note that metric attributes only exist on objects managed in Enterprise Studio.)
+        schema:
+          type: boolean
+          default: false
+      - name: includeProfiles
+        in: query
+        description: When true, profile attribute values will be included with each object returned. (Note that profile attributes only exist on objects managed in Enterprise Studio.)
+        schema:
+          type: boolean
+          default: false
+      - name: includeExternalIds
+        in: query
+        description: When true, the external ID (if applicable) will be included with each entity returned. (Note that only entities may have an external ID.)
+        schema:
+          type: boolean
+          default: false
+      - $ref: '#/components/parameters/Offset'
+      - $ref: '#/components/parameters/Limit'
+      responses:
+        200:
+          description: The request was successful. The response body is a JSON object, containing an array of objects (and some additional data). This array might be empty. Note that although data blocks associated with an object can be requested separately, they are returned also in this response. The <i>updatedAtAggregated</i> timestamp differs from <i>updatedAt</i> in that it contains the most recent timestamp from either the object or one of its data blocks (and as such is used when filtering using the <i>updatedAfter</i> parameter).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Objects'
+        401:
+          $ref: '#/components/responses/401'
+        403:
+          $ref: '#/components/responses/403repository'
+  /repositories/{repositoryId}/objects/{objectId}:
+    get:
+      tags:
+      - objects
+      summary: Retrieve one object, relation, entity or link
+      description: Retrieve a single object, relation, entity or link, located in the repository specified. Various parameters are available for the inclusion of additional information.
+      operationId: getObject
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/ObjectId'
+      - name: includeMetrics
+        in: query
+        description: When true, metric values (if applicable) will be included with each object returned. (Note that metric attributes only exist on objects managed in Enterprise Studio.)
+        schema:
+          type: boolean
+          default: false
+      - name: includeProfiles
+        in: query
+        description: When true, profile attribute values will be included with each object returned. (Note that profile attributes only exist on objects managed in Enterprise Studio.)
+        schema:
+          type: boolean
+          default: false
+      - name: includeExternalId
+        in: query
+        description: When true, the external ID (if applicable) will be included with each entity returned. (Note that only entities may have an external ID.)
+        schema:
+          type: boolean
+          default: false
+      responses:
+        200:
+          description: The request was successful. The response body is a JSON object, containing the object (and some additional data). Note that although data blocks associated with an object can be requested separately, they are returned also in this response. The <i>updatedAtAggregated</i> timestamp differs from <i>updatedAt</i> in that it contains the most recent timestamp from either the object or one of its data blocks.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Object'
+        401:
+          $ref: '#/components/responses/401'
+        403:
+          $ref: '#/components/responses/403repository'
+        404:
+          $ref: '#/components/responses/404'
+  /repositories/{repositoryId}/relations:
+    get:
+      tags:
+      - objects
+      summary: Retrieve all relations and links by type
+      description: Retrieve a list of all relations and links of a certain type, located in the repository specified. Various parameters are available for filtering and the inclusion of additional information.
+      operationId: getRelations
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - name: relationType
+        in: query
+        description: The fully qualified type of the relations to retrieve.
+        schema:
+          type: string
+        example: 'ArchiMate:FlowRelation'
+      - name: fromType
+        in: query
+        description: The fully qualified type of the object these relations or links must start on (cannot be combined with <i>fromId</i>).
+        schema:
+          type: string
+        example: 'ArchiMate:ApplicationComponent'
+      - name: toType
+        in: query
+        description: The fully qualified type of the object these relations or links must end on (cannot be combined with <i>toId</i>).
+        schema:
+          type: string
+        example: 'ArchiMate:ApplicationComponent'
+      - name: fromId
+        in: query
+        description: An internal ID (UUID) that identifies the object these relations or links must start on (cannot be combined with <i>fromType</i>).
+        schema:
+          type: string
+        example: 'f4a07f7c-461f-eb11-82d0-066d32674111'
+      - name: toId
+        in: query
+        description: An internal ID (UUID) that identifies the object these relations or links must end on (cannot be combined with <i>toType</i>).
+        schema:
+          type: string
+        example: 'e298fd5f-bd5c-ec11-b2ff-a4ed433005b7'
+      - name: includeExternalIds
+        in: query
+        description: When true, the external ID (if applicable) will be included with each link returned. (Note that only links may have an external ID.)
+        schema:
+          type: boolean
+          default: false
+      - $ref: '#/components/parameters/Offset'
+      - $ref: '#/components/parameters/Limit'
+      responses:
+        200:
+          description: The request was successful. The response body is a JSON object, containing an array of relations. This array might be empty.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RelationInfos'
+        401:
+          $ref: '#/components/responses/401'
+        403:
+          $ref: '#/components/responses/403repository'
+  /repositories/{repositoryId}/relations/{relationId}:
+    get:
+      tags:
+      - objects
+      summary: Retrieve one relation or link
+      description: Retrieve a single relation or link, located in the repository specified.
+      operationId: getRelation
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - name: relationId
+        in: path
+        required: true
+        description: An internal ID (UUID) that identifies the relation to retrieve.
+        schema:
+          type: string
+        example: 'd04ef79e-5ea4-ec11-8974-60a5e23ae246'
+      - name: includeExternalId
+        in: query
+        description: When true, the external ID (if applicable) will be included with the link returned. (Note that only links may have an external ID.)
+        schema:
+          type: boolean
+          default: false
+      responses:
+        200:
+          description: The request was successful. The response body is a JSON object, containing the relation or link.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RelationInfo'
+        401:
+          $ref: '#/components/responses/401'
+        403:
+          $ref: '#/components/responses/403repository'
+        404:
+          $ref: '#/components/responses/404'
+
+  /repositories/{repositoryId}/schemas:
+    get:
+      tags:
+      - data block definition
+      summary: Get all data block definitions
+      description: Retrieve all available data block definitions located in the repository specified.
+      operationId: getDataBlockDefinitions
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/Offset'
+      - $ref: '#/components/parameters/Limit'
+      responses:
+        200:
+          description: The request was successful. The response body is a JSON object containing an array of data block definitions. This array might be empty.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionedDataBlockDefinitions'
+        401:
+          $ref: '#/components/responses/401'
+        403:
+          $ref: '#/components/responses/403repository'
+        404:
+          $ref: '#/components/responses/404'
+  /repositories/{repositoryId}/schemas/{namespace}/{name}:
+    post:
+      tags:
+      - data block definition
+      summary: Submit (a new version of) a data block definition
+      description: When a data block definition with this namespace and name does not yet exist, it is created in the repository specified. When the data block definition already exists, this new definition will override the current version. Existing data blocks using the previous definition will keep using this definition until written again, at which moment the new definition will be applied.
+      operationId: postDataBlockDefinition
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/DbdNamespace'
+      - $ref: '#/components/parameters/DbdName'
+      requestBody:
+        description: The JSON contents of the new data block definition
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDataBlockDefinition'
+        required: false
+      responses:
+        201:
+          description: The request was successful. The response body contains the data block definition that was uploaded, complemented with some additional operational data (like a creation timestamp).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionedDataBlockDefinition'
+        400:
+          $ref: '#/components/responses/400'
+        401:
+          $ref: '#/components/responses/401'
+        403:
+          $ref: '#/components/responses/403repository'
+        404:
+          $ref: '#/components/responses/404'
+      x-codegen-request-body-name: schema
+    get:
+      tags:
+      - data block definition
+      summary: Get data block definition by name
+      description: Retrieve the data block definition with the specified namespace and name, located in the repository specified.
+      operationId: getDataBlockDefinitionWithName
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/DbdNamespace'
+      - $ref: '#/components/parameters/DbdName'
+      responses:
+        200:
+          description: The request was successful. The response body contains a JSON object representing the data block definition definition.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionedDataBlockDefinition'
+        401:
+          $ref: '#/components/responses/401'
+        403:
+          $ref: '#/components/responses/403repository'
+        404:
+          $ref: '#/components/responses/404'
+    delete:
+      tags:
+      - data block definition
+      summary: Delete data block definition by name
+      description: Delete the data block definition with the specified namespace and name, located in the repository specified. <i>Please note that this will also remove all data blocks that use this data block definition!</i>
+      operationId: deleteDataBlockDefinitionWithName
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/DbdNamespace'
+      - $ref: '#/components/parameters/DbdName'
+      responses:
+        204:
+          description: The request was successful.
+        401:
+          $ref: '#/components/responses/401'
+        403:
+          $ref: '#/components/responses/403repository'
+        404:
+          $ref: '#/components/responses/404'
+  /repositories/{repositoryId}/objects/{objectId}/datablocks/{namespace}/{name}:
+    post:
+      tags:
+      - data block
+      summary: Create a new data block
+      description: Create a new data block and associate it with an object.
+      operationId: postDataBlock
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/ObjectId'
+      - $ref: '#/components/parameters/DbdNamespace'
+      - $ref: '#/components/parameters/DbdName'
+      requestBody:
+        description: The JSON contents of the new data block
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataBlockCreate'
+        required: false
+      responses:
+        201:
+          description: The request was successful. The response body contains the JSON data block that was uploaded, complemented with the data block's ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataBlockResult'
+        401:
+          $ref: '#/components/responses/401'
+        403:
+          $ref: '#/components/responses/403repository'
+        409:
+          description: The request failed because the object already has a data block for the specified data block definition. The response body contains a JSON object specifying the Horizzon Server error number 'H_409' and a URL to the associated online help page.
+          content: {}
+      x-codegen-request-body-name: document
+    get:
+      tags:
+      - data block
+      summary: Retrieve a data block attached to an object
+      description: Retrieve a data block attached to an object (i.e. an <i>element</i>, <i>relation</i>, <i>entity</i>, or <i>link</i>). The values returned will adhere to the latest version of the data block definition.
+      operationId: getObjectDataBlock
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/ObjectId'
+      - $ref: '#/components/parameters/DbdNamespace'
+      - $ref: '#/components/parameters/DbdName'
+      responses:
+        200:
+          description: The request was successful. The response body contains the data block.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataBlockResult'
+        401:
+          $ref: '#/components/responses/401'
+        403:
+          $ref: '#/components/responses/403repository'
+        404:
+          $ref: '#/components/responses/404'
+    put:
+      tags:
+      - data block
+      summary: Replace an existing data block
+      description: Replace an existing data block associated with an object.<br><br>If the associated data block definition has been updated since the last time this data block was written, this latest data block definition version will be applied.
+      operationId: putDataBlock
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/ObjectId'
+      - $ref: '#/components/parameters/DbdNamespace'
+      - $ref: '#/components/parameters/DbdName'
+      requestBody:
+        description: The new JSON contents of the data block.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataBlockValues'
+        required: false
+      responses:
+        200:
+          description: The request was successful. The response body contains the updated data block.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataBlockResult'
+        401:
+          $ref: '#/components/responses/401'
+        403:
+          $ref: '#/components/responses/403repository'
+        404:
+          $ref: '#/components/responses/404'
+      x-codegen-request-body-name: document
+    patch:
+      tags:
+      - data block
+      summary: Update an existing data block
+      description: Replace a subset of values in an existing data block.<br><br>If the associated data block definition has been updated since the last time this data block was written, this latest data block definition version will be applied.
+      operationId: patchDataBlock
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/ObjectId'
+      - $ref: '#/components/parameters/DbdNamespace'
+      - $ref: '#/components/parameters/DbdName'
+      requestBody:
+        description: The new JSON contents of the data block
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataBlockValues'
+        required: false
+      responses:
+        200:
+          description: The request was successful. The response body contains the (updated) current JSON contents of the data block.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataBlockResult'
+        401:
+          $ref: '#/components/responses/401'
+        403:
+          $ref: '#/components/responses/403repository'
+        404:
+          $ref: '#/components/responses/404'
+      x-codegen-request-body-name: document
+    delete:
+      tags:
+      - data block
+      summary: Delete an existing data block
+      description: Delete the data block with the specified ID.
+      operationId: deleteDataBlock
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/ObjectId'
+      - $ref: '#/components/parameters/DbdNamespace'
+      - $ref: '#/components/parameters/DbdName'
+      responses:
+        204:
+          description: The request was successful.
+        401:
+          $ref: '#/components/responses/401'
+        403:
+          $ref: '#/components/responses/403repository'
+        404:
+          $ref: '#/components/responses/404'
+  /repositories/{repositoryId}/objects/{objectId}/datablocks:
+    get:
+      tags:
+      - data block
+      summary: Retrieve all data blocks attached to an object
+      description: Retrieve all data blocks attached to an object (i.e. an <i>element</i>, <i>relation</i>, <i>entity</i>, or <i>link</i>). The values returned will adhere to the latest version of the data block definition.
+      operationId: getObjectDataBlocks
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/ObjectId'
+      responses:
+        200:
+          description: The request was successful. The response body contains the data block.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataBlockResults'
+        401:
+          $ref: '#/components/responses/401'
+        403:
+          $ref: '#/components/responses/403repository'
+        404:
+          $ref: '#/components/responses/404'
+  /repositories/{repositoryId}/collections:
+    get:
+      tags:
+      - collection
+      summary: Retrieve all collections in the repository
+      description: Retrieve all collections in the repository.
+      operationId: getCollections
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      responses:
+        200:
+          description: The request was successful. The response body contains the collections.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collections'
+        401:
+          $ref: '#/components/responses/401'
+        404:
+          $ref: '#/components/responses/404'
+    post:
+      tags:
+      - collection
+      summary: Create a new collection in the repository
+      description: Create a new collection in the repository
+      operationId: postCollection
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      requestBody:
+        description: The JSON contents of the new collection
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CollectionCreate'
+        required: false
+      responses:
+        201:
+          description: The request was successful. The response body contains the
+            collection that was uploaded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collection'
+        400:
+          $ref: '#/components/responses/400'
+        401:
+          $ref: '#/components/responses/401'
+        404:
+          $ref: '#/components/responses/404'
+      x-codegen-request-body-name: collection
+  /repositories/{repositoryId}/collections/{collectionId}:
+    get:
+      tags:
+      - collection
+      summary: Retrieve a collection from the repository
+      description: Retrieve a collection from the repository
+      operationId: getCollection
+      parameters:
+        - $ref: '#/components/parameters/RepositoryId'
+        - $ref: '#/components/parameters/CollectionId'
+      responses:
+        200:
+          description: The request was successful. The response body contains the
+            collection.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collection'
+        401:
+          $ref: '#/components/responses/401'
+        404:
+          $ref: '#/components/responses/404'
+    put:
+      tags:
+      - collection
+      summary: Update (the name of) a collection
+      description: Update (the name of) a collection
+      operationId: updateCollection
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/CollectionId'
+      requestBody:
+        description: The values to update (only the name). When omitted, the value
+          will be cleared. If the values are equal to the ones already set, the request
+          will succeed without performing an update.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CollectionUpdate'
+        required: false
+      responses:
+        204:
+          description: The request was successful.
+        '401':
+          $ref: '#/components/responses/401'
+        404:
+          $ref: '#/components/responses/404'
+      x-codegen-request-body-name: collection
+    delete:
+      tags:
+      - collection
+      summary: Delete a collection from the repository
+      description: Delete a collection from the repository
+      operationId: deleteCollection
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/CollectionId'
+      responses:
+        204:
+          description: The request was successful.
+        401:
+          $ref: '#/components/responses/401'
+        404:
+          $ref: '#/components/responses/404'
+        409:
+          description: The request failed because the collection is protected against deletion.
+          content: {}
+  /repositories/{repositoryId}/collections/{collectionId}/containers:
+    get:
+      tags:
+      - container
+      summary: Retrieve all containers in a collection
+      description: Retrieve all containers in a collection
+      operationId: getContainers
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/CollectionId'
+      responses:
+        200:
+          description: The request was successful. The response body contains the
+            containers.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Containers'
+        401:
+          $ref: '#/components/responses/401'
+    post:
+      tags:
+      - container
+      summary: Create a new container in a collection
+      description: Create a new container in a collection
+      operationId: postContainer
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/CollectionId'
+      requestBody:
+        description: The JSON contents of the new container
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContainerCreate'
+        required: false
+      responses:
+        201:
+          description: The request was successful. The response body contains the
+            container that was uploaded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Container'
+        400:
+          $ref: '#/components/responses/400'
+        401:
+          $ref: '#/components/responses/401'
+      x-codegen-request-body-name: container
+  /repositories/{repositoryId}/containers/{containerId}:
+    get:
+      tags:
+      - container
+      summary: Retrieve a container
+      description: Retrieve a container
+      operationId: getContainer
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/ContainerId'
+      responses:
+        200:
+          description: The request was successful. The response body contains the
+            container.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Container'
+        401:
+          $ref: '#/components/responses/401'
+    put:
+      tags:
+      - container
+      summary: Update (the name of) a container
+      description: Update (the name of) a container
+      operationId: updateContainer
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/ContainerId'
+      requestBody:
+        description: The values to update (only the name). When omitted, the value
+          will be cleared. If the values are equal to the ones already set, the request
+          will succeed without performing an update.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContainerUpdate'
+        required: false
+      responses:
+        204:
+          description: The request was successful.
+        401:
+          $ref: '#/components/responses/401'
+      x-codegen-request-body-name: container
+    delete:
+      tags:
+      - container
+      summary: Delete a container
+      description: Delete a container
+      operationId: deleteContainer
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/ContainerId'
+      responses:
+        204:
+          description: The request was successful.
+        401:
+          $ref: '#/components/responses/401'
+        404:
+          $ref: '#/components/responses/404'
+  /repositories/{repositoryId}/collections/{collectionId}/entities/bulk:
+    post:
+      tags:
+      - bulk
+      summary: Create and/or update one or more entities in a collection
+      description: Create and/or update one or more entities in a collection
+      operationId: postEntities
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/CollectionId'
+      requestBody:
+        description: The JSON contents of the entities to create and/or update.
+          The term is mandatory when creating and no internal ID must be specified.
+          When updating, an existing ID (internal or external) and the field(s) to update
+          are required.
+          When 'containerExternalId' is specified for a new entity, it will be created in a
+          container with that ID, unless that has reached its limit of 5000 objects, in
+          which case a new container will be created with a similar ID. If 'containerExternalId'
+          is omitted, the entity is added to the default container. If the default
+          container has already reached its limit of 5000 objects, the request will fail.
+          Data blocks values can optionally be included for each entity. This will replace
+          a subset of values in an existing data block. Only the data blocks inside the
+          array will be patched.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EntitiesCreateUpdate'
+        required: false
+      responses:
+        201:
+          description: The request was successful. The response body contains the
+            entities (and data blocks) that were created or updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntitiesCreateUpdate'
+        400:
+          $ref: '#/components/responses/400'
+        401:
+          $ref: '#/components/responses/401'
+      x-codegen-request-body-name: entities
+  /repositories/{repositoryId}/collections/{collectionId}/entities/bulk/delete:
+    post:
+      tags:
+      - bulk
+      summary: Delete one or more entities from a collection
+      description: Delete one or more entities from a collection. If a specified ID does not represent an existing entity, or the entity is not part of the collection, a not found error is returned. Any links attached to a deleted entity are deleted also.
+      operationId: deleteEntities
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/CollectionId'
+      requestBody:
+        description: A JSON object with the IDs (internal or external) of the entities to delete.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EntityIds'
+        required: false
+      responses:
+        204:
+          description: The request was successful. 
+        400:
+          $ref: '#/components/responses/400'
+        401:
+          $ref: '#/components/responses/401'
+        404:
+          $ref: '#/components/responses/404'
+      x-codegen-request-body-name: entityids
+  /repositories/{repositoryId}/collections/{collectionId}/entities:
+    get:
+      tags:
+      - entity
+      summary: Retrieve all entities in a collection
+      description: Retrieve all entities in a collection
+      operationId: getEntitiesInCollection
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/CollectionId'
+      - $ref: '#/components/parameters/Offset'
+      - $ref: '#/components/parameters/Limit'
+      responses:
+        200:
+          description: The request was successful. The response body contains the
+            entities.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Entities'
+        401:
+          $ref: '#/components/responses/401'
+    post:
+      tags:
+      - entity
+      summary: Create an entity in a collection
+      description: Create an entity in a collection
+      operationId: createEntityInCollection
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/CollectionId'
+      requestBody:
+        description: The JSON contents of the entity to create. When 'containerExternalId'
+          is specified, the entity will be created in a container with that ID, unless
+          it has reached its limit of 5000 objects, in which case a new container
+          will be created with a similar ID. If 'containerExternalId' is omitted,
+          the entity is added to the default container. If the default container
+          has already reached its limit of 5000 objects, the request will fail.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EntityCreateCollection'
+        required: false
+      responses:
+        201:
+          description: The request was successful. The response body contains the
+            entity.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Entity'
+        401:
+          $ref: '#/components/responses/401'
+      x-codegen-request-body-name: entity
+  /repositories/{repositoryId}/containers/{containerId}/entities:
+    get:
+      tags:
+      - entity
+      summary: Retrieve all entities in a container
+      description: Retrieve all entities in a container
+      operationId: getEntitiesInContainer
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/ContainerId'
+      - $ref: '#/components/parameters/Offset'
+      - $ref: '#/components/parameters/Limit'
+      responses:
+        200:
+          description: The request was successful. The response body contains the
+            entities.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Entities'
+        401:
+          $ref: '#/components/responses/401'
+    post:
+      tags:
+      - entity
+      summary: Create an entity in a container
+      description: Create an entity in a container
+      operationId: createEntityInContainer
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/ContainerId'
+      requestBody:
+        description: The JSON contents of the entity to create. If the container has
+          already reached its limit of 5000 elements, the request will fail.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EntityCreate'
+        required: false
+      responses:
+        201:
+          description: The request was successful. The response body contains the
+            entity.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Entity'
+        '401':
+          $ref: '#/components/responses/401'
+      x-codegen-request-body-name: entity
+  /repositories/{repositoryId}/entities/{entityId}:
+    get:
+      tags:
+      - entity
+      summary: Retrieve an entity
+      description: Retrieve an entity
+      operationId: getEntity
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/EntityId'
+      responses:
+        200:
+          description: The request was successful. The response body contains the
+            entity.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Entity'
+        401:
+          $ref: '#/components/responses/401'
+    put:
+      tags:
+      - entity
+      summary: Update (the name of) an entity
+      description: Update (the name of) an entity
+      operationId: updateEntity
+      parameters:
+      - name: repositoryId
+        in: path
+        description: The number that identifies the repository.
+        required: true
+        schema:
+          type: integer
+      - name: entityId
+        in: path
+        description: The internal or external ID (a String) that identifies the entity.
+        required: true
+        schema:
+          type: string
+      requestBody:
+        description: The values to update (only the name). When omitted, the value
+          will be cleared. If the values are equal to the ones already set, the request
+          will succeed without performing an update.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EntityUpdate'
+        required: false
+      responses:
+        204:
+          description: The request was successful.
+        401:
+          $ref: '#/components/responses/401'
+      x-codegen-request-body-name: entity
+    delete:
+      tags:
+      - entity
+      summary: Delete an entity
+      description: Delete an entity
+      operationId: deleteEntity
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/EntityId'
+      responses:
+        204:
+          description: The request was successful.
+        401:
+          $ref: '#/components/responses/401'
+        404:
+          $ref: '#/components/responses/404'
+  /repositories/{repositoryId}/collections/{collectionId}/links/bulk:
+    post:
+      tags:
+      - bulk
+      summary: Create and/or update one or more links in a collection
+      description: Create and/or update one or more links in a collection. When one or both endpoints of a link do not exist, the link is skipped, but this will not cause the request to fail.
+      operationId: postLinks
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/CollectionId'
+      - name: includeRejections
+        in: query
+        description: When true, information about rejected links (including the reasons for rejection) will be added to the response. Defaults to 'false'.
+        schema:
+          type: boolean
+          default: false
+      requestBody:
+        description: The JSON contents of the links to create and/or update.
+          The term is mandatory when creating and no internal ID must be specified.
+          When updating, an existing ID (internal or external) and the field(s) to update
+          are required.
+          When 'containerExternalId' is specified for a new link, it will be created in a
+          container with that ID, unless that has reached its limit of 5000 objects, in
+          which case a new container will be created with a similar ID. If 'containerExternalId'
+          is omitted, the link is added to the default container. If the default container
+          has already reached its limit of 5000 objects, the request will fail.
+          If the addition of this link causes either of its end elements to exceed
+          the maximum number of 500 attached links, the request will fail.
+          Data blocks values can optionally be included for each link. This will replace
+          a subset of values in an existing data block. Only the data blocks inside the
+          array will be patched.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LinksCreateUpdate'
+        required: false
+      responses:
+        200:
+          description: The request was successful. The response body contains the
+            links (and data blocks) that were created or updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinksCreateUpdateWithRejections'
+        400:
+          $ref: '#/components/responses/400'
+        401:
+          $ref: '#/components/responses/401'
+      x-codegen-request-body-name: links
+  /repositories/{repositoryId}/collections/{collectionId}/links/bulk/delete:
+    post:
+      tags:
+      - bulk
+      summary: Delete one or more links from a collection
+      description: Delete one or more links from a collection. If a specified ID does not represent an existing link, or the link is not part of the collection, a not found error is returned. Any links attached to a deleted links are deleted also.
+      operationId: deleteLinks
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/CollectionId'
+      requestBody:
+        description: A JSON object with the IDs (internal or external) of the links to delete.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LinkIds'
+        required: false
+      responses:
+        204:
+          description: The request was successful. 
+        400:
+          $ref: '#/components/responses/400'
+        401:
+          $ref: '#/components/responses/401'
+        404:
+          $ref: '#/components/responses/404'
+      x-codegen-request-body-name: linkids
+  /repositories/{repositoryId}/collections/{collectionId}/links:
+    get:
+      tags:
+      - link
+      summary: Retrieve all links in a collection
+      description: Retrieve all links in a collection
+      operationId: getLinksInCollection
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/CollectionId'
+      - $ref: '#/components/parameters/Offset'
+      - $ref: '#/components/parameters/Limit'
+      responses:
+        200:
+          description: The request was successful. The response body contains the
+            links.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Links'
+        401:
+          $ref: '#/components/responses/401'
+    post:
+      tags:
+      - link
+      summary: Create a link in a collection
+      description: Create a link in a collection
+      operationId: createLinkInCollection
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/CollectionId'
+      requestBody:
+        description: The JSON contents of the link to create. When 'containerExternalId'
+          is specified, the link will be created in a container with that ID, unless
+          it has reached its limit of 5000 elements, in which case a new container
+          will be created with a similar ID. If 'containerExternalId' is omitted,
+          the link is added to the default container. If the default container
+          has already reached its limit of 5000 elements, the request will fail. If the 
+          addition of this link causes either of its end elements to exceed the maximum 
+          number of 500 attached links, the request will fail.<br>
+          To create a link use 'fromId', 'toId', 'fromExternalId' or 'toExternalId' to
+          refer to an Entity and 'fromId' or 'toId' to refer to an Object. Note that at
+          least one of the two linked elements must be an entity.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LinkCreateCollection'
+            examples:
+              Entity to Entity link:
+                value:
+                  externalId: 'entity-to-entity-link-1'
+                  term: 'ArchiMate:FlowRelation'
+                  name:
+                    $ref: '#/components/schemas/Names'
+                  fromExternalId: 'entity-1'
+                  toExternalId: 'entity-2'
+                  containerExternalId: 'SNowApps'             
+              Entity to Object link:
+                value:
+                  externalId: 'entity-to-object-link-2'
+                  term: 'ArchiMate:FlowRelation'
+                  name:
+                    $ref: '#/components/schemas/Names'
+                  fromExternalId: 'entity-1'
+                  toId: 'c7dc1184-d9d0-4253-ba30-7f351e0f60eb'
+                  containerExternalId: 'SNowApps'
+              Object to Entity link:
+                value:
+                  externalId: 'object-to-entity-link-3'
+                  term: 'ArchiMate:FlowRelation'
+                  name:
+                    $ref: '#/components/schemas/Names'
+                  fromId: 'd2ca09f5-4e97-45e5-9754-3ac89d8d10f3'
+                  toExternalId: 'entity-1'
+                  containerExternalId: 'SNowApps'
+        required: false
+      responses:
+        201:
+          description: The request was successful. The response body contains the
+            link.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Link'
+        400:
+          $ref: '#/components/responses/400'
+        401:
+          $ref: '#/components/responses/401'
+      x-codegen-request-body-name: link
+  /repositories/{repositoryId}/containers/{containerId}/links:
+    get:
+      tags:
+      - link
+      summary: Retrieve all links in a container
+      description: Retrieve all links in a container
+      operationId: getLinksInContainer
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/ContainerId'
+      - $ref: '#/components/parameters/Offset'
+      - $ref: '#/components/parameters/Limit'
+      responses:
+        200:
+          description: The request was successful. The response body contains the
+            links.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Links'
+        401:
+          $ref: '#/components/responses/401'
+    post:
+      tags:
+      - link
+      summary: Create a link in a container
+      description: Create a link in a container
+      operationId: createLinkInContainer
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/ContainerId'
+      requestBody:
+        description: The JSON contents of the link to create. If the container has
+          already reached its limit of 5000 elements, the request will fail. If the 
+          addition of this link causes either of its end elements to exceed the maximum 
+          number of 500 attached links, the request will fail.<br>
+          To create a link use 'fromId', 'toId', 'fromExternalId' or 'toExternalId' to
+          refer to an Entity and 'fromId' or 'toId' to refer to an Object. Note that at
+          least one of the two linked elements must be an entity.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LinkCreate'
+            examples:
+              Entity to Entity link:
+                value:
+                  externalId: 'entity-to-entity-link-1'
+                  term: 'ArchiMate:FlowRelation'
+                  name:
+                    $ref: '#/components/schemas/Names'
+                  fromExternalId: 'entity-1'
+                  toExternalId: 'entity-2'
+                  containerExternalId: 'SNowApps'             
+              Entity to Object link:
+                value:
+                  externalId: 'entity-to-object-link-2'
+                  term: 'ArchiMate:FlowRelation'
+                  name:
+                    $ref: '#/components/schemas/Names'
+                  fromExternalId: 'entity-1'
+                  toId: 'c7dc1184-d9d0-4253-ba30-7f351e0f60eb'
+                  containerExternalId: 'SNowApps'
+              Object to Entity link:
+                value:
+                  externalId: 'object-to-entity-link-3'
+                  term: 'ArchiMate:FlowRelation'
+                  name:
+                    $ref: '#/components/schemas/Names'
+                  fromId: 'd2ca09f5-4e97-45e5-9754-3ac89d8d10f3'
+                  toExternalId: 'entity-1'
+        required: false
+      responses:
+        201:
+          description: The request was successful. The response body contains the
+            link.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Link'
+        400:
+          $ref: '#/components/responses/400'
+        401:
+          $ref: '#/components/responses/401'
+      x-codegen-request-body-name: link
+  /repositories/{repositoryId}/links/{linkId}:
+    get:
+      tags:
+      - link
+      summary: Retrieve a link
+      description: Retrieve a link
+      operationId: getLink
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/LinkId'
+      responses:
+        200:
+          description: The request was successful. The response body contains the
+            link.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Link'
+        401:
+          $ref: '#/components/responses/401'
+    put:
+      tags:
+      - link
+      summary: Update (the name of) a link
+      description: Ipdate (the name of) a link
+      operationId: updateLink
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/LinkId'
+      requestBody:
+        description: The values to update (only the name). When omitted, the value
+          will be cleared. If the values are equal to the ones already set, the request
+          will succeed without performing an update.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LinkUpdate'
+        required: false
+      responses:
+        204:
+          description: The request was successful.
+        '401':
+          $ref: '#/components/responses/401'
+      x-codegen-request-body-name: link
+    delete:
+      tags:
+      - link
+      summary: Delete a link
+      description: Delete a link
+      operationId: deleteLink
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/LinkId'
+      responses:
+        204:
+          description: The request was successful.
+        401:
+          $ref: '#/components/responses/401'
+        404:
+          $ref: '#/components/responses/404'
+  /repositories/{repositoryId}/entities/{entityId}/datablocks/{namespace}/{name}:
+    get:
+      tags:
+      - entity data block
+      summary: Retrieve a data block attached to an entity
+      description: Retrieve a data block attached to an entity
+      operationId: getEntityDataBlock
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/EntityId'
+      - $ref: '#/components/parameters/DbdNamespace'
+      - $ref: '#/components/parameters/DbdName'
+      responses:
+        200:
+          description: The request was successful. The response body contains the
+            data block.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataBlockResult'
+        401:
+          $ref: '#/components/responses/401'
+        404:
+          $ref: '#/components/responses/404'
+    put:
+      tags:
+      - entity data block
+      summary: Replace an existing data block attached to an entity
+      description: Replace an existing data block attached to an entity
+      operationId: putEntityDataBlock
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/EntityId'
+      - $ref: '#/components/parameters/DbdNamespace'
+      - $ref: '#/components/parameters/DbdName'
+      requestBody:
+        description: The updated JSON contents of the data block.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataBlockValues'
+        required: false
+      responses:
+        200:
+          description: The request was successful. The response body contains the
+            updated data block (as it was uploaded).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataBlockResult'
+        401:
+          $ref: '#/components/responses/401'
+      x-codegen-request-body-name: document
+    post:
+      tags:
+      - entity data block
+      summary: Create a new data block attached to an entity
+      description: Create a new data block attached to an entity
+      operationId: postEntityDataBlock
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/EntityId'
+      - $ref: '#/components/parameters/DbdNamespace'
+      - $ref: '#/components/parameters/DbdName'
+      requestBody:
+        description: The JSON contents of the new data block
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataBlockValues'
+        required: false
+      responses:
+        201:
+          description: The request was successful. The response body contains the
+            data block that was uploaded, complemented with the data block's ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataBlockResult'
+        401:
+          $ref: '#/components/responses/401'
+      x-codegen-request-body-name: document
+    delete:
+      tags:
+      - entity data block
+      summary: Delete a data block attached to an entity
+      description: Delete a data block attached to an entity
+      operationId: deleteEntityDataBlock
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/EntityId'
+      - $ref: '#/components/parameters/DbdNamespace'
+      - $ref: '#/components/parameters/DbdName'
+      responses:
+        204:
+          description: The request was successful.
+        401:
+          $ref: '#/components/responses/401'
+        404:
+          $ref: '#/components/responses/404'
+    patch:
+      tags:
+      - entity data block
+      summary: Update an existing data block attached to an entity
+      description: Update an existing data block attached to an entity
+      operationId: patchEntityDataBlock
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/EntityId'
+      - $ref: '#/components/parameters/DbdNamespace'
+      - $ref: '#/components/parameters/DbdName'
+      requestBody:
+        description: The (updated part of the) JSON contents of the data block.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataBlockValues'
+        required: false
+      responses:
+        200:
+          description: The request was successful. The response body contains the
+            updated data block.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataBlockResult'
+        401:
+          $ref: '#/components/responses/401'
+      x-codegen-request-body-name: document
+  /repositories/{repositoryId}/links/{linkId}/datablocks/{namespace}/{name}:
+    get:
+      tags:
+      - link data block
+      summary: Retrieve a data block attached to a link
+      description: Retrieve a data block attached to a link
+      operationId: getLinkDataBlock
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/LinkId'
+      - $ref: '#/components/parameters/DbdNamespace'
+      - $ref: '#/components/parameters/DbdName'
+      responses:
+        200:
+          description: The request was successful. The response body contains the
+            data block.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataBlockResult'
+        401:
+          $ref: '#/components/responses/401'
+        404:
+          $ref: '#/components/responses/404'
+    put:
+      tags:
+      - link data block
+      summary: Replace an existing data block attached to a link
+      description: Replace an existing data block attached to a link
+      operationId: putLinkDataBlock
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/LinkId'
+      - $ref: '#/components/parameters/DbdNamespace'
+      - $ref: '#/components/parameters/DbdName'
+      requestBody:
+        description: The updated JSON contents of the data block.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataBlockValues'
+        required: false
+      responses:
+        200:
+          description: The request was successful. The response body contains the
+            updated data block (as it was uploaded).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataBlockResult'
+        401:
+          $ref: '#/components/responses/401'
+      x-codegen-request-body-name: document
+    post:
+      tags:
+      - link data block
+      summary: Create a new data block attached to a link
+      description: Create a new data block attached to a link
+      operationId: postLinkDataBlock
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/LinkId'
+      - $ref: '#/components/parameters/DbdNamespace'
+      - $ref: '#/components/parameters/DbdName'
+      requestBody:
+        description: The JSON contents of the new data block
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataBlockValues'
+        required: false
+      responses:
+        201:
+          description: The request was successful. The response body contains the
+            data block that was uploaded, complemented with the data block's ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataBlockResult'
+        401:
+          $ref: '#/components/responses/401'
+      x-codegen-request-body-name: document
+    delete:
+      tags:
+      - link data block
+      summary: Delete a data block attached to a link
+      description: Delete a data block attached to a link
+      operationId: deleteLinkDataBlock
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/LinkId'
+      - $ref: '#/components/parameters/DbdNamespace'
+      - $ref: '#/components/parameters/DbdName'
+      responses:
+        204:
+          description: The request was successful.
+        401:
+          $ref: '#/components/responses/401'
+        404:
+          $ref: '#/components/responses/404'
+    patch:
+      tags:
+      - link data block
+      summary: Update an existing data block attached to a link
+      description: Update an existing data block attached to a link
+      operationId: patchLinkDataBlock
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/LinkId'
+      - $ref: '#/components/parameters/DbdNamespace'
+      - $ref: '#/components/parameters/DbdName'
+      requestBody:
+        description: The (updated part of the) JSON contents of the data block.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataBlockValues'
+        required: false
+      responses:
+        200:
+          description: The request was successful. The response body contains the
+            updated data block.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataBlockResult'
+        401:
+          $ref: '#/components/responses/401'
+      x-codegen-request-body-name: document
+  /repositories/{repositoryId}/models/{modelId}/types/{type}/datablocks/{namespace}/{name}/editors:
+    get:
+      tags:
+      - editor
+      summary: Retrieve the editors for the specified data block of all objects of the specified type in the model
+      description: Retrieves the users and groups who are assigned as editors
+        for the specified data block of all objects of the specified type in the model.
+      operationId: getModelLevelEditors
+      parameters:
+        - $ref: '#/components/parameters/RepositoryId'
+        - $ref: '#/components/parameters/ModelId'
+        - $ref: '#/components/parameters/ObjectType'
+        - $ref: '#/components/parameters/DbdNamespace'
+        - $ref: '#/components/parameters/DbdName'
+      responses:
+        200:
+          description: The request was successful. The response body is a JSON object
+            detailing the users and groups which are assigned as editors
+            for the specified data block of all objects of the specified type in the model.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersGroups'
+        401:
+          $ref: '#/components/responses/401'
+        404:
+          $ref: '#/components/responses/404'
+    put:
+      tags:
+      - editor
+      summary: Assign or update editors for the specified data block of all objects of the specified type in the model
+      description: Assigns or, when editors are already assigned for the data block,
+        updates the users and groups assigned editors for the specified data block of
+        all objects of the specified type in the model.
+      operationId: putModelLevelEditors
+      parameters:
+        - $ref: '#/components/parameters/RepositoryId'
+        - $ref: '#/components/parameters/ModelId'
+        - $ref: '#/components/parameters/ObjectType'
+        - $ref: '#/components/parameters/DbdNamespace'
+        - $ref: '#/components/parameters/DbdName'
+      requestBody:
+        description: The editors to be assigned to the specified data block of
+          all objects of the specified type in the model.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UsersGroups'
+        required: true
+      responses:
+        200:
+          description: The request was successful. The editors for the specified data block of
+            all objects of the specified type in the model have been updated.
+            The response body is a JSON object with the users and groups which have been assigned
+            as editors for the specified data block of all objects of the specified type in the model.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersGroups'
+        201:
+          description: The request was successful. The specified data block of
+            all objects of the specified type in the model has been assigned editors.
+            The response body is a JSON object with the users and
+            groups which have been assigned as editors for the for the specified data block
+            of all objects of the specified type in the model.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersGroups'
+        400:
+          $ref: '#/components/responses/400editors'
+        401:
+          $ref: '#/components/responses/401'
+        404:
+          $ref: '#/components/responses/404'
+      x-codegen-request-body-name: editors
+    post:
+      tags:
+      - editor
+      summary: Assign editors for the specified data block of all objects of the specified type in the model
+      description: Assigns users and groups as editors for the specified data block of all objects
+        of the specified type in the model.
+      operationId: postModelLevelEditors
+      parameters:
+        - $ref: '#/components/parameters/RepositoryId'
+        - $ref: '#/components/parameters/ModelId'
+        - $ref: '#/components/parameters/ObjectType'
+        - $ref: '#/components/parameters/DbdNamespace'
+        - $ref: '#/components/parameters/DbdName'
+      requestBody:
+        description: The editors to be assigned to the specified data block of
+          all objects of the specified type in the model.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UsersGroups'
+        required: true
+      responses:
+        201:
+          description: The request was successful. The specified data block of
+            all objects of the specified type in the model has been assigned editors.
+            The response body is a JSON object with the users and groups which have been assigned
+            as editors for the specified data block of all objects of the specified type in the model.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersGroups'
+        400:
+          $ref: '#/components/responses/400editors'
+        401:
+          $ref: '#/components/responses/401'
+        404:
+          $ref: '#/components/responses/404'
+        409:
+          description: The request failed because editors are already defined
+            for the specified data block of all objects of the specified type in the model.
+          content: {}
+      x-codegen-request-body-name: editors
+    delete:
+      tags:
+      - editor
+      summary: Remove all editors for the specified data block of all objects of the specified type in the model
+      description: Clear the users and groups assigned as editors for the specified data block of all objects of the specified type in the model.
+      operationId: deleteModelLevelEditors
+      parameters:
+        - $ref: '#/components/parameters/RepositoryId'
+        - $ref: '#/components/parameters/ModelId'
+        - $ref: '#/components/parameters/ObjectType'
+        - $ref: '#/components/parameters/DbdNamespace'
+        - $ref: '#/components/parameters/DbdName'
+      responses:
+        204:
+          description: The request was successful and editors have been
+            cleared for the specified data block of all objects of the specified type in the model.
+            No content returned in the response body.
+        401:
+          $ref: '#/components/responses/401'
+        404:
+          $ref: '#/components/responses/404'
+  /repositories/{repositoryId}/models/{modelId}/types/{type}/datablocks/{namespace}/{name}/readers:
+    get:
+      tags:
+        - reader
+      summary: Retrieve the readers for the specified data block of all objects of the specified type in the model
+      description: Retrieves the users and groups who are assigned as readers
+        for the specified data block of all objects of the specified type in the model.
+      operationId: getModelLevelReaders
+      parameters:
+        - $ref: '#/components/parameters/RepositoryId'
+        - $ref: '#/components/parameters/ModelId'
+        - $ref: '#/components/parameters/ObjectType'
+        - $ref: '#/components/parameters/DbdNamespace'
+        - $ref: '#/components/parameters/DbdName'
+      responses:
+        200:
+          description: The request was successful. The response body is a JSON object
+            detailing the users and groups which are assigned as readers
+            for the specified data block of all objects of the specified type in the model.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersGroups'
+        401:
+          $ref: '#/components/responses/401'
+        404:
+          $ref: '#/components/responses/404'
+    put:
+      tags:
+        - reader
+      summary: Assign or update readers for the specified data block of all objects of the specified type in the model
+      description: Assigns or, when readers are already assigned for the data block,
+        updates the users and groups assigned readers for the specified data block of
+        all objects of the specified type in the model.
+      operationId: putModelLevelReaders
+      parameters:
+        - $ref: '#/components/parameters/RepositoryId'
+        - $ref: '#/components/parameters/ModelId'
+        - $ref: '#/components/parameters/ObjectType'
+        - $ref: '#/components/parameters/DbdNamespace'
+        - $ref: '#/components/parameters/DbdName'
+      requestBody:
+        description: The readers to be assigned to the specified data block of
+          all objects of the specified type in the model.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UsersGroups'
+        required: true
+      responses:
+        200:
+          description: The request was successful. The readers for the specified data block of
+            all objects of the specified type in the model have been updated.
+            The response body is a JSON object with the users and groups which have been assigned
+            as readers for the specified data block of all objects of the specified type in the model.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersGroups'
+        201:
+          description: The request was successful. The readers for the specified data block of
+            all objects of the specified type in the model have been assigned readers.
+            The response body is a JSON object with the users and
+            groups which have been assigned as readers for the for the specified data block
+            of all objects of the specified type in the model.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersGroups'
+        400:
+          $ref: '#/components/responses/400readers'
+        401:
+          $ref: '#/components/responses/401'
+        404:
+          $ref: '#/components/responses/404'
+      x-codegen-request-body-name: readers
+    post:
+      tags:
+        - reader
+      summary: Assign readers for the specified data block of all objects of the specified type in the model
+      description: Assigns users and groups as readers for the specified data block of all objects
+        of the specified type in the model.
+      operationId: postModelLevelReaders
+      parameters:
+        - $ref: '#/components/parameters/RepositoryId'
+        - $ref: '#/components/parameters/ModelId'
+        - $ref: '#/components/parameters/ObjectType'
+        - $ref: '#/components/parameters/DbdNamespace'
+        - $ref: '#/components/parameters/DbdName'
+      requestBody:
+        description: The readers to be assigned to the specified data block of
+          all objects of the specified type in the model.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UsersGroups'
+        required: true
+      responses:
+        201:
+          description:  The request was successful. The specified data block of
+            all objects of the specified type in the model has been assigned readers.
+            The response body is a JSON object with the users and groups which have been assigned
+            as readers for the specified data block of all objects of the specified type in the model.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersGroups'
+        400:
+          $ref: '#/components/responses/400readers'
+        401:
+          $ref: '#/components/responses/401'
+        404:
+          $ref: '#/components/responses/404'
+        409:
+          description: The request failed because readers are already defined
+            for the specified data block of all objects of the specified type in the model.
+          content: {}
+      x-codegen-request-body-name: readers
+    delete:
+      tags:
+        - reader
+      summary: Remove all readers for the specified data block of all objects of the specified type in the model
+      description: Clear the users and groups assigned as readers for the specified data block of all objects of the specified type in the model.
+      operationId: deleteModelLevelReaders
+      parameters:
+        - $ref: '#/components/parameters/RepositoryId'
+        - $ref: '#/components/parameters/ModelId'
+        - $ref: '#/components/parameters/ObjectType'
+        - $ref: '#/components/parameters/DbdNamespace'
+        - $ref: '#/components/parameters/DbdName'
+      responses:
+        204:
+          description: The request was successful and readers have been
+            cleared for the specified data block of all objects of the specified type in the model.
+            No content returned in the response body.
+        401:
+          $ref: '#/components/responses/401'
+        404:
+          $ref: '#/components/responses/404'
+  /repositories/{repositoryId}/objects/{objectId}/datablocks/{namespace}/{name}/editors:
+    get:
+      tags:
+      - editor
+      summary: Get the editors for a data block
+      description: Gets the users and groups who are directly assigned as editors
+        of a data block.
+      operationId: getDataBlockEditors
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/ObjectId'
+      - $ref: '#/components/parameters/DbdNamespace'
+      - $ref: '#/components/parameters/DbdName'
+      responses:
+        200:
+          description: The request successfully found editors for the specified data
+            block. The response body is a JSON object detailing the users and groups
+            which are assigned directly as editors for this data block.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersGroups'
+        401:
+          $ref: '#/components/responses/401'
+        404:
+           $ref: '#/components/responses/404'
+    put:
+      tags:
+      - editor
+      summary: Assign or update editors for a data block
+      description: Assigns or, when editors are already assigned for the data block,
+        updates the users and groups assigned as editors for the specified data block.
+      operationId: putDataBlockEditors
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/ObjectId'
+      - $ref: '#/components/parameters/DbdNamespace'
+      - $ref: '#/components/parameters/DbdName'
+      requestBody:
+        description: The editors to be assigned to the data block
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UsersGroups'
+        required: true
+      responses:
+        200:
+          description: The request was successful. The default editors for the specified
+            object have been updated. The response body is a JSON object with the
+            users and groups that have been assigned as editors for the specified
+            data block.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersGroups'
+        201:
+          description: The request was successful. The specified data block has been
+            assigned default editors. The response body is a JSON object with the
+            users and groups that have been assigned as editors for the specified
+            data block.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersGroups'
+        400:
+          $ref: '#/components/responses/400editors'
+        401:
+          $ref: '#/components/responses/401'
+        404:
+          $ref: '#/components/responses/404'
+      x-codegen-request-body-name: editors
+    post:
+      tags:
+      - editor
+      summary: Assign editors for a data block
+      description: Assigns users and groups as editors for the specified data block.
+      operationId: postDataBlockEditors
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/ObjectId'
+      - $ref: '#/components/parameters/DbdNamespace'
+      - $ref: '#/components/parameters/DbdName'
+      requestBody:
+        description: The editors to be assigned to the data block
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UsersGroups'
+        required: true
+      responses:
+        201:
+          description: The request was successful. The specified data block has been
+            assigned default editors. The response body is a JSON object with the
+            users and groups that have been assigned as editors for the specified
+            data block.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersGroups'
+        400:
+          $ref: '#/components/responses/400editors'
+        401:
+          $ref: '#/components/responses/401'
+        404:
+          $ref: '#/components/responses/404'
+        409:
+          description: The request failed because editors already exist for the specified
+            data block.
+          content: {}
+      x-codegen-request-body-name: editors
+    delete:
+      tags:
+      - editor
+      summary: Remove all editors for a data block
+      description: Clear the users and groups assigned as editors for the specified
+        data block
+      operationId: deleteDataBlockEditors
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/ObjectId'
+      - $ref: '#/components/parameters/DbdNamespace'
+      - $ref: '#/components/parameters/DbdName'
+      responses:
+        204:
+          description: The request was successful and all editors have been cleared
+            for the specified data block. No content returned in the response body.
+        401:
+          $ref: '#/components/responses/401'
+        404:
+          $ref: '#/components/responses/404'
+  /repositories/{repositoryId}/objects/{objectId}/datablocks/{namespace}/{name}/readers:
+    get:
+      tags:
+      - reader
+      summary: Get the readers for a data block
+      description: Gets the users and groups who are directly assigned as readers
+        of a data block.
+      operationId: getDataBlockReaders
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/ObjectId'
+      - $ref: '#/components/parameters/DbdNamespace'
+      - $ref: '#/components/parameters/DbdName'
+      responses:
+        200:
+          description: The request successfully found readers for the specified data
+            block. The response body is a JSON object detailing the users and groups
+            which are assigned directly as readers for this data block.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersGroups'
+        401:
+          $ref: '#/components/responses/401'
+        404:
+          $ref: '#/components/responses/404'
+    put:
+      tags:
+      - reader
+      summary: Assign or update readers for a data block
+      description: Assigns or, when readers are already assigned for the data block,
+        updates the users and groups assigned as readers for the specified data block.
+      operationId: putDataBlockReaders
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/ObjectId'
+      - $ref: '#/components/parameters/DbdNamespace'
+      - $ref: '#/components/parameters/DbdName'
+      requestBody:
+        description: The readers to be assigned to the data block
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UsersGroups'
+        required: true
+      responses:
+        200:
+          description: The request was successful. The default readers for the specified
+            object have been updated. The response body is a JSON object with the
+            users and groups that have been assigned as readers for the specified
+            data block.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersGroups'
+        201:
+          description: The request was successful. The specified data block has been
+            assigned default readers. The response body is a JSON object with the
+            users and groups that have been assigned as readers for the specified
+            data block.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersGroups'
+        400:
+          $ref: '#/components/responses/400readers'
+        401:
+          $ref: '#/components/responses/401'
+        404:
+          $ref: '#/components/responses/404'
+      x-codegen-request-body-name: readers
+    post:
+      tags:
+      - reader
+      summary: Assign readers for a data block
+      description: Assigns users and groups as readers for the specified data block.
+      operationId: postDataBlockReaders
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/ObjectId'
+      - $ref: '#/components/parameters/DbdNamespace'
+      - $ref: '#/components/parameters/DbdName'
+      requestBody:
+        description: The readers to be assigned to the data block
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UsersGroups'
+        required: true
+      responses:
+        201:
+          description: The request was successful. The specified data block has been
+            assigned default readers. The response body is a JSON object with the
+            users and groups that have been assigned as readers for the specified
+            data block.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersGroups'
+        400:
+          $ref: '#/components/responses/400readers'
+        401:
+          $ref: '#/components/responses/401'
+        404:
+          $ref: '#/components/responses/404'
+        409:
+          description: The request failed because readers already exist for the specified
+            data block.
+          content: {}
+      x-codegen-request-body-name: readers
+    delete:
+      tags:
+      - reader
+      summary: Remove all readers for a data block
+      description: Clear the users and groups assigned as readers for the specified
+        data block
+      operationId: deleteDataBlockReaders
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/ObjectId'
+      - $ref: '#/components/parameters/DbdNamespace'
+      - $ref: '#/components/parameters/DbdName'
+      responses:
+        204:
+          description: The request was successful and all readers have been cleared
+            for the specified data block. No content returned in the response body.
+        401:
+          $ref: '#/components/responses/401'
+        404:
+          $ref: '#/components/responses/404'
+  /repositories/{repositoryId}/objects/{objectId}/datablocks/{namespace}/{name}/schedule:
+    get:
+      tags:
+      - data update schedule
+      summary: Get an update schedule for a data block
+      description: Retrieves the update schedule for the specified data block.
+        This defines when and how often data tasks should be created to prompt editors
+        to update the data within the data block.
+      operationId: getDataUpdateSchedule
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/ObjectId'
+      - $ref: '#/components/parameters/DbdNamespace'
+      - $ref: '#/components/parameters/DbdName'
+      responses:
+        200:
+          description: The request was successful. The response body is a JSON representation
+            of the update schedule assigned to the specified data block.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataUpdateSchedule'
+        401:
+          $ref: '#/components/responses/401'
+        404:
+          $ref: '#/components/responses/404'
+    put:
+      tags:
+      - data update schedule
+      summary: Assign or update an update schedule for a data block
+      description: Assigns or, when an update schedule already exists for the
+        data block, updates the update schedule for the specified data block.
+        This defines when and how often data tasks should be created to prompt editors
+        to update the data within the data block.
+      operationId: putDataUpdateSchedule
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/ObjectId'
+      - $ref: '#/components/parameters/DbdNamespace'
+      - $ref: '#/components/parameters/DbdName'
+      requestBody:
+        description: The update schedule to be persisted
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataUpdateSchedule'
+        required: true
+      responses:
+        200:
+          description: The request was successful. The existing update schedule
+            has been updated for the specified data block. The response body is a
+            JSON representation of the update schedule that has been assigned
+            to the specified data block.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataUpdateSchedule'
+        201:
+          description: The request was successful. An update schedule has been
+            assigned to the specified data block. The response body is a JSON representation
+            of the update schedule that has been assigned to the specified data
+            block.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataUpdateSchedule'
+        401:
+          $ref: '#/components/responses/401'
+        404:
+          $ref: '#/components/responses/404'
+      x-codegen-request-body-name: dataUpdateSchedule
+    post:
+      tags:
+      - data update schedule
+      summary: Create an update schedule for a data block
+      description: Creates a new update schedule for the specified data block.
+        This defines when and how often data tasks should be created to prompt editors
+        to update the data within the data block.
+      operationId: postDataUpdateSchedule
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/ObjectId'
+      - $ref: '#/components/parameters/DbdNamespace'
+      - $ref: '#/components/parameters/DbdName'
+      requestBody:
+        description: The update schedule to be persisted
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataUpdateSchedule'
+        required: true
+      responses:
+        201:
+          description: The request was successful. The response body is a JSON representation
+            of the update schedule assigned to the specified data block.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataUpdateSchedule'
+        401:
+          $ref: '#/components/responses/401'
+        403:
+          description: The request failed because the API client only has read permissions,
+            or because the maximum limit of data update schedules within the system
+            has been exceeded.
+          content: {}
+        404:
+          $ref: '#/components/responses/404'
+        409:
+          description: The request failed because an update schedule already exists
+            for the specified data block.
+          content: {}
+      x-codegen-request-body-name: dataUpdateSchedule
+    delete:
+      tags:
+      - data update schedule
+      summary: Remove an update schedule for a data block
+      description: Removes the existing update schedule for the specified data
+        block. This will also remove any data tasks created from the removed 
+        update schedule.
+      operationId: deleteDataUpdateSchedule
+      parameters:
+      - $ref: '#/components/parameters/RepositoryId'
+      - $ref: '#/components/parameters/ObjectId'
+      - $ref: '#/components/parameters/DbdNamespace'
+      - $ref: '#/components/parameters/DbdName'
+      responses:
+        204:
+          description: The request was successful and the update schedule was
+            removed for the specified data block, as well as any related data tasks.
+            No content returned in the response body.
+        401:
+          $ref: '#/components/responses/401'
+        404:
+          $ref: '#/components/responses/404'
+  /auditevents:
+    get:
+      tags:
+      - audit events
+      summary: Retrieve audit events
+      description: Retrieve a list of audit events sorted by event id in ascending
+        order.
+      operationId: getAuditEvents
+      parameters:
+      - name: since
+        in: query
+        description: A date/time in ISO format (e.g. '2020-03-21T16:49:31.427Z').
+          Only events logged since the given moment will be returned, including the
+          since date/time.
+        schema:
+          type: string
+        example: '2020-03-21T16:49:31.427Z'
+      - name: until
+        in: query
+        description: A date/time in ISO format (e.g. '2020-03-21T16:49:31.427Z').
+          Only events logged until the given moment will be returned, not including
+          the until date/time.
+        schema:
+          type: string
+        example: '2020-03-21T16:49:31.427Z'
+      - name: offset
+        in: query
+        description: The zero based offset of the first item in the list to return
+          from the server.
+        schema:
+          type: integer
+          default: 0
+      - name: limit
+        in: query
+        description: 'Pagination limit: number of rows to return. The maximum is 10000.
+          When omitted, this number defaults to 100.'
+        schema:
+          type: integer
+          default: 100
+          maximum: 10000
+      responses:
+        200:
+          description: The request was successful. The response body is a JSON
+            object containing an array of audit events. This array might be empty
+            when there are no events for the given parameters. Depending on the name
+            of the event only the properties relevant to the event will have a value.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditEvents'
+        401:
+          $ref: '#/components/responses/401'
+components:
+  schemas:
+    CreateDataBlockDefinition:
+      required:
+      - fields
+      - schemas
+      - types
+      type: object
+      properties:
+        label:
+          type: string
+          example: 'Application information'
+        fields:
+          minItems: 1
+          type: array
+          items:
+            $ref: '#/components/schemas/Field'
+        schemas:
+          type: array
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/EnumSchemaDefinition'
+              - $ref: '#/components/schemas/ReferenceSchemaDefinition'
+              - $ref: '#/components/schemas/ListSchemaDefinition'
+        types:
+          type: array
+          items:
+            type: string
+            example: 'ArchiMate:ApplicationComponent'
+    VersionedDataBlockDefinition:
+      required:
+      - fields
+      - name
+      - namespace
+      - publishedForRepository
+      - schemas
+      - types
+      - createdAt
+      - updatedAt
+      type: object
+      properties:
+        namespace:
+          type: string
+          example: 'default'
+        name:
+          type: string
+          example: 'applicationinfo'
+        label:
+          type: string
+          example: 'Application information'
+        fields:
+          minItems: 1
+          type: array
+          items:
+            $ref: '#/components/schemas/Field'
+        schemas:
+          type: array
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/EnumSchemaDefinition'
+              - $ref: '#/components/schemas/ReferenceSchemaDefinition'
+              - $ref: '#/components/schemas/ListSchemaDefinition'
+        types:
+          type: array
+          items:
+            type: string
+            example: 'ArchiMate:ApplicationComponent'
+        createdAt:
+          type: string
+          example: '2024-11-03T13:07:27.199892Z'
+        updatedAt:
+          type: string
+          example: '2025-02-10T15:08:21.736452Z'
+        publishedForRepository:
+          type: integer
+          example: 171
+    VersionedDataBlockDefinitions:
+      type: object
+      properties:
+        _items:
+          type: array
+          items:
+            $ref: '#/components/schemas/VersionedDataBlockDefinition'
+        _offset:
+          type: integer
+          example: 0
+        _limit:
+          type: integer
+          example: 500
+    Field:
+      required:
+      - name
+      - schema
+      type: object
+      properties:
+        name:
+          type: string
+          example: 'totalcost'
+        schema:
+          type: string
+          example: 'money'
+        label:
+          type: string
+          example: 'Total cost'
+        constraints:
+          type: object
+          properties:
+            currency:
+              type: string
+              example: 'EUR'
+    EnumSchemaDefinition:
+      required:
+      - kind
+      - name
+      type: object
+      properties:
+        kind:
+          type: string
+          enum:
+          - enum
+        name:
+          type: string
+          example: 'verylowtoveryhigh_enum'
+        literals:
+          minItems: 1
+          type: array
+          items:
+            $ref: '#/components/schemas/EnumLiteral'
+    ReferenceSchemaDefinition:
+      required:
+      - kind
+      - name
+      type: object
+      properties:
+        kind:
+          type: string
+          enum:
+          - reference
+        name:
+          type: string
+          example: 'application component'
+        types:
+          minItems: 1
+          type: array
+          items:
+            type: string
+            example: 'ArchiMate:ApplicationComponent'
+    ListSchemaDefinition:
+      required:
+      - kind
+      - name
+      type: object
+      properties:
+        kind:
+          type: string
+          enum:
+          - list
+        name:
+          type: string
+          example: 'list_of_strings'
+        elementSchema:
+          type: string
+          example: 'string'
+    UsersGroups:
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            type: string
+            example: employee@customer.com
+        groups:
+          type: array
+          items:
+            type: string
+            example: Groupname
+    DataUpdateSchedule:
+      type: object
+      properties:
+        startAt:
+          type: string
+          example: 2020-11-30
+        pattern:
+          type: string
+          example: EVERY_QUARTER
+          enum:
+          - NEVER
+          - EVERY_WEEK
+          - EVERY_TWO_WEEKS
+          - EVERY_MONTH
+          - EVERY_QUARTER
+          - EVERY_HALF_A_YEAR
+          - EVERY_YEAR
+    EnumLiteral:
+      type: object
+      properties:
+        name:
+          type: string
+        label:
+          type: string
+    DataBlockCreate:
+      required:
+      - objectId
+      - schemaName
+      - schemaNamespace
+      - values
+      type: object
+      properties:
+        objectId:
+          type: string
+          example: '5f53a04e-ac11-4301-88b6-f81c0d0f45b1'
+        schemaNamespace:
+          type: string
+          example: 'default'
+        schemaName:
+          type: string
+          example: 'applicationinfo'
+        values:
+          type: object
+          properties: {}
+          example:
+            usercount: 1337
+            totalcost:
+              currency: 'EUR'
+              amount: 4711
+    DataBlockCreateUpdate:
+      required:
+      - schemaName
+      - schemaNamespace
+      - values
+      type: object
+      properties:
+        schemaNamespace:
+          type: string
+          example: 'default'
+        schemaName:
+          type: string
+          example: 'applicationinfo'
+        values:
+          type: object
+          properties: {}
+          example:
+            usercount: 1337
+            totalcost:
+              currency: 'EUR'
+              amount: 4711
+    DataBlockValues:
+      required:
+      - values
+      type: object
+      properties:
+        values:
+          type: object
+          properties: {}
+          example:
+            usercount: 1337
+            totalcost:
+              currency: 'EUR'
+              amount: 4711
+    DataBlockResult:
+      type: object
+      properties:
+        objectId:
+          type: string
+          example: '5f53a04e-ac11-4301-88b6-f81c0d0f45b1'
+        schemaNamespace:
+          type: string
+          example: 'default'
+        schemaName:
+          type: string
+          example: 'applicationinfo'
+        values:
+          type: object
+          properties: {}
+          example:
+            usercount: 1337
+            totalcost:
+              currency: 'EUR'
+              amount: 4711
+        updatedAt:
+          type: string
+          example: '2020-11-20T15:07:27.199892Z'
+    DataBlockResults:
+      type: object
+      properties:
+        _items:
+          type: array
+          items:
+            $ref: '#/components/schemas/DataBlockResult'
+    Object:
+      type: object
+      properties:
+        id:
+          type: string
+          example: '5f53a04e-ac11-4301-88b6-f81c0d0f45b1'
+        externalId:
+          type: string
+          example: 'Entity-1'
+        type:
+          type: string
+          example: 'ArchiMate:ApplicationComponent'
+        objectName:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            en: 'Bizzdesign'
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/DataBlockResult'
+        updatedAt:
+          type: string
+          example: '2021-12-14T11:55:41Z'
+        updatedAtAggregated:
+          type: string
+          example: '2022-02-16T15:46:53.269766Z'
+        metrics:
+          type: object
+        profiles:
+          type: object
+    Objects:
+      type: object
+      properties:
+        _items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Object'
+        _offset:
+          type: integer
+          example: 0
+        _limit:
+          type: integer
+          example: 500
+    RelationInfo:
+      required:
+      - fromId
+      - fromType
+      - relationId
+      - relationType
+      - toId
+      - toType
+      type: object
+      properties:
+        relationId:
+          type: string
+          example: 'd04ef79e-5ea4-ec11-8974-60a5e23ae246'
+        externalId:
+          type: string
+          example: 'Link-1'
+        relationType:
+          type: string
+          example: 'ArchiMate:TriggeringRelation'
+        relationName:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            en: ''
+        fromId:
+          type: string
+          example: 'f4a07f7c-461f-eb11-82d0-066d32674111'
+        fromExternalId:
+          type: string
+          example: 'Entity-1'
+        fromType:
+          type: string
+          example: 'ArchiMate:ApplicationComponent'
+        fromName:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            en: 'ServiceNow'
+        toId:
+          type: string
+          example: '5f53a04e-ac11-4301-88b6-f81c0d0f45b1'
+        toExternalId:
+          type: string
+          example: 'Entity-2'
+        toType:
+          type: string
+          example: 'ArchiMate:ApplicationComponent'
+        toName:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            en: 'Bizzdesign'
+        updatedAt:
+          type: string
+          example: '2020-11-20T15:07:27.199892Z'
+    RelationInfos:
+      type: object
+      properties:
+        _items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RelationInfo'
+        _offset:
+          type: integer
+          example: 0
+        _limit:
+          type: integer
+          example: 0
+    Names:
+      type: object
+      additionalProperties:
+        type: string
+      example:
+        en: "Name in English"
+        de: "Name auf deutsch"
+    EntityIds:
+      type: object
+      properties:
+        entityIds:
+          type: array
+          items:
+            type: string
+            example: 'Entity-1'
+    LinkIds:
+      type: object
+      properties:
+        linkIds:
+          type: array
+          items:
+            type: string
+            example: 'Link-1'
+    DataBlock:
+      type: object
+      properties:
+        schemaNamespace:
+          type: string
+          example: 'default'
+        schemaName:
+          type: string
+          example: 'applicationinfo'
+        values:
+          type: object
+          properties: {}
+          example:
+            usercount: 1337
+            totalcost:
+              currency: 'EUR'
+              amount: 4711
+    Repository:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 171
+        masterCollaborationId:
+          type: integer
+          example: 185
+        masterCollaborationName:
+          type: string
+          example: ACME Production
+        masterCollaborationDescription:
+          type: string
+          example: ACME main production model package
+    Repositories:
+      type: object
+      properties:
+        _items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Repository'
+    CollectionCreate:
+      required:
+      - externalId
+      - term
+      type: object
+      properties:
+        externalId:
+          type: string
+          example: 'ServiceNowData'
+        term:
+          type: string
+          example: 'ArchiMate'
+        name:
+          $ref: '#/components/schemas/Names'
+    CollectionUpdate:
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/Names'
+    Collection:
+      required:
+      - id
+      - term
+      - updatedAt
+      type: object
+      properties:
+        id:
+          type: string
+          example: 'ae995b4b-a98f-4de8-88bf-7edc5b4b9b57'
+        externalId:
+          type: string
+          example: 'ServiceNowData'
+        term:
+          type: string
+          example: 'ArchiMate'
+        name:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            en: 'ServiceNow data'
+        updatedAt:
+          type: string
+          example: '2022-01-19T15:40:09.616046Z'
+    Collections:
+      type: object
+      properties:
+        _items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Collection'
+        _offset:
+          type: integer
+          example: 0
+        _limit:
+          type: integer
+          example: 500
+    ContainerCreate:
+      required:
+      - externalId
+      - term
+      type: object
+      properties:
+        externalId:
+          type: string
+          example: 'SNowApps'
+        term:
+          type: string
+          example: 'ArchiMate:ApplicationScheme'
+        name:
+          $ref: '#/components/schemas/Names'
+    ContainerUpdate:
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/Names'
+    Container:
+      required:
+      - id
+      - term
+      - updatedAt
+      type: object
+      properties:
+        id:
+          type: string
+          example: '28aae5b8-91c1-47ce-8de3-816caeb7289d'
+        externalId:
+          type: string
+          example: 'SNowApps'
+        term:
+          type: string
+          example: 'ArchiMate:ApplicationScheme'
+        name:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            en: 'ServiceNow applications'
+        updatedAt:
+          type: string
+          example: '2020-11-20T15:07:27.199892Z'
+    Containers:
+      type: object
+      properties:
+        _items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Container'
+        _offset:
+          type: integer
+          example: 0
+        _limit:
+          type: integer
+          example: 500
+    EntityCreateUpdate:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 'd2ca09f5-4e97-45e5-9754-3ac89d8d10f3'
+        externalId:
+          type: string
+          example: 'Entity-1'
+        term:
+          type: string
+          example: 'ArchiMate:ApplicationComponent'
+        name:
+          $ref: '#/components/schemas/Names'
+        containerExternalId:
+          type: string
+          example: 'SnowApps'
+        dataBlocks:
+          type: array
+          items:
+            $ref: '#/components/schemas/DataBlockCreateUpdate'
+    EntityCreateCollection:
+      required:
+      - term
+      type: object
+      properties:
+        externalId:
+          type: string
+          example: 'Entity-1'
+        term:
+          type: string
+          example: 'ArchiMate:ApplicationComponent'
+        name:
+          $ref: '#/components/schemas/Names'
+        containerExternalId:
+          type: string
+          example: 'SnowApps'
+    EntityCreate:
+      required:
+      - term
+      type: object
+      properties:
+        externalId:
+          type: string
+          example: 'Entity-1'
+        term:
+          type: string
+          example: 'ArchiMate:ApplicationComponent'
+        name:
+          $ref: '#/components/schemas/Names'
+    EntityUpdate:
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/Names'
+    Entity:
+      required:
+      - id
+      - term
+      - updatedAt
+      type: object
+      properties:
+        id:
+          type: string
+          example: 'd2ca09f5-4e97-45e5-9754-3ac89d8d10f3'
+        externalId:
+          type: string
+          example: 'Entity-1'
+        term:
+          type: string
+          example: 'ArchiMate:ApplicationComponent'
+        name:
+          $ref: '#/components/schemas/Names'
+        updatedAt:
+          type: string
+          example: "2022-01-19T15:41:24.897484Z"
+    Entities:
+      type: object
+      properties:
+        _items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Entity'
+        _offset:
+          type: integer
+          example: 0
+        _limit:
+          type: integer
+          example: 500
+    EntitiesCreateUpdate:
+      type: object
+      properties:
+        _items:
+          type: array
+          items:
+            $ref: '#/components/schemas/EntityCreateUpdate'
+        _offset:
+          type: integer
+          example: 0
+        _limit:
+          type: integer
+          example: 500
+    LinkCreateUpdate:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 'd2ca09f5-4e97-45e5-9754-3ac89d8d10f3'
+        externalId:
+          type: string
+          example: 'Link-1'
+        term:
+          type: string
+          example: 'ArchiMate:FlowRelation'
+        name:
+          $ref: '#/components/schemas/Names'
+        fromId:
+          type: string
+          example: 'd2ca09f5-4e97-45e5-9754-3ac89d8d10f3'
+        fromExternalId:
+          type: string
+          example: 'Entity-1'
+        toId:
+          type: string
+          example: 'd2ca09f5-4e97-45e5-9754-3ac89d8d10f3'
+        toExternalId:
+          type: string
+          example: 'Entity-2'
+        containerExternalId:
+          type: string
+          example: 'SNowApps'
+        dataBlocks:
+          type: array
+          items:
+            $ref: '#/components/schemas/DataBlockCreateUpdate'
+    ReturnsCreateUpdate:
+      type: object
+      properties:
+        linksCreated:
+          type: integer
+        linksRejected:
+          type: integer
+        rejections:
+          type: array
+          items:
+            type: object
+            properties:
+              externalId:
+                type: string
+              reasons:
+                type: array
+                items:
+                  type: string
+    LinkCreateCollection:
+      required:
+      - term
+      type: object
+      properties:
+        externalId:
+          type: string
+          example: 'Link-1'
+        term:
+          type: string
+          example: 'ArchiMate:FlowRelation'
+        name:
+          $ref: '#/components/schemas/Names'
+        fromExternalId:
+          type: string
+          example: 'Entity-1'
+        toExternalId:
+          type: string
+          example: 'Entity-2'
+        fromId:
+          type: string
+          example: '89396e35-9b60-4203-bee9-17dd040e1b35'
+        toId:
+          type: string
+          example: '9ed78913-7110-42bb-86c6-b053a380cfd3'
+        containerExternalId:
+          type: string
+          example: 'SNowApps'
+    LinkCreate:
+      required:
+      - term
+      type: object
+      properties:
+        externalId:
+          type: string
+          example: 'Link-1'
+        term:
+          type: string
+          example: 'ArchiMate:FlowRelation'
+        name:
+          $ref: '#/components/schemas/Names'
+        fromExternalId:
+          type: string
+          example: 'Entity-1'
+        toExternalId:
+          type: string
+          example: 'Entity-2'
+        fromId:
+          type: string
+          example: '89396e35-9b60-4203-bee9-17dd040e1b35'
+        toId:
+          type: string
+          example: '9ed78913-7110-42bb-86c6-b053a380cfd3'
+    LinkUpdate:
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/Names'
+    Link:
+      required:
+      - fromId
+      - id
+      - term
+      - toId
+      - updatedAt
+      type: object
+      properties:
+        id:
+          type: string
+          example: '1c29378f-289b-4b97-9c51-331110117ce8'
+        externalId:
+          type: string
+          example: 'Link-1'
+        term:
+          type: string
+          example: 'ArchiMate:FlowRelation'
+        name:
+          $ref: '#/components/schemas/Names'
+        fromId:
+          type: string
+          example: 'd2ca09f5-4e97-45e5-9754-3ac89d8d10f3'
+        fromExternalId:
+          type: string
+          example: 'Entity-1'
+        toId:
+          type: string
+          example: 'c7dc1184-d9d0-4253-ba30-7f351e0f60eb'
+        toExternalId:
+          type: string
+          example: 'Entity-2'
+        updatedAt:
+          type: string
+          example: '2022-03-03T09:15:04.436344Z'
+    Links:
+      type: object
+      properties:
+        _items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Link'
+        _offset:
+          type: integer
+          example: 0
+        _limit:
+          type: integer
+          example: 500
+    LinksCreateUpdateWithRejections:
+      type: object
+      properties:
+        _items:
+          type: array
+          items:
+            $ref: '#/components/schemas/LinkCreateUpdate'
+        _returns:
+            $ref: '#/components/schemas/ReturnsCreateUpdate'
+        _offset:
+          type: integer
+        _limit:
+          type: integer
+    LinksCreateUpdate:
+      type: object
+      properties:
+        _items:
+          type: array
+          items:
+            $ref: '#/components/schemas/LinkCreateUpdate'
+        _offset:
+          type: integer
+        _limit:
+          type: integer
+    AuditEvent:
+      type: object
+      properties:
+        eventNumber:
+          type: integer
+          example: 5030
+        name:
+          type: string
+          example: "Login Success"
+        date:
+          type: string
+          example: '2019-02-07T11:31:18.834Z'
+        eventSourceUsername:
+          type: string
+          example: 'employee@example.com'
+        eventSourceEmail:
+          type: string
+          example: 'employee@example.com'
+        eventTargetUsername:
+          type: string
+          example: 'employee@example.com'
+        eventTargetEmail:
+          type: string
+          example: 'employee@example.com'
+        collaborationName:
+          type: string
+          example: 'ACME UAT model package'
+        collaborationType:
+          type: string
+          example: 'master'
+        groupName:
+          type: string
+          example: 'Designer group'
+        commitDate:
+          type: string
+          example: '2021-11-09T15:11:28.000Z'
+        commitAuthor:
+          type: string
+          example: 'employee@example.com'
+        commitHash:
+          type: string
+          example: '60dc328c2f60c91723666c36c771206e127bafa2'
+        properties:
+          type: object
+          additionalProperties: true
+          example:
+            associatedTypes: ["ArchiMate:ApplicationComponent"]
+    AuditEvents:
+      type: object
+      properties:
+        _items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuditEvent'
+        _offset:
+          type: integer
+          example: 0
+        _limit:
+          type: integer
+          example: 500
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          example: 'The repository was not found'
+
+  parameters:
+    RepositoryId:
+      name: repositoryId
+      in: path
+      description: The number that identifies the repository.
+      required: true
+      schema:
+        type: integer
+      example: 171
+    ObjectId:
+      name: objectId
+      in: path
+      description: The UUID that identifies the object.
+      required: true
+      schema:
+        type: string
+      example: '5f53a04e-ac11-4301-88b6-f81c0d0f45b1'
+    ModelId:
+      name: modelId
+      in: path
+      description: The UUID that identifies the model object.
+      required: true
+      schema:
+        type: string
+      example: '5f53a04e-ac11-4301-88b6-f81c0d0f45b1'
+    ObjectType:
+      name: type
+      in: path
+      description: The type of the objects in the model.
+      required: true
+      schema:
+        type: string
+      example: 'ArchiMate:ApplicationComponent'
+    DbdNamespace:
+      name: namespace
+      in: path
+      description: The namespace of the data block definition.
+      required: true
+      schema:
+          type: string
+      example: 'default'
+    DbdName:
+      name: name
+      in: path
+      description: The name of the data block definition.
+      required: true
+      schema:
+        type: string
+      example: 'applicationinfo'
+    CollectionId:
+      name: collectionId
+      in: path
+      description: The internal or external ID that identifies the collection.
+      required: true
+      schema:
+        type: string
+      example: 'ServiceNowData'
+    ContainerId:
+      name: containerId
+      in: path
+      description: The internal or external ID that identifies the container.
+      required: true
+      schema:
+        type: string
+      example: 'Applications'
+    EntityId:
+      name: entityId
+      in: path
+      description: The internal or external ID that identifies the entity.
+      required: true
+      schema:
+        type: string
+      example: 'Entity-1'
+    LinkId:
+      name: linkId
+      in: path
+      description: The internal or external ID that identifies the link.
+      required: true
+      schema:
+        type: string
+      example: 'Link-1'
+    Offset:
+      name: offset
+      in: query
+      description: 'Pagination offset: number of rows preceding the first row returned.
+        When omitted, this number defaults to 0.'
+      schema:
+        minimum: 0
+        type: integer
+        format: int32
+        default: 0
+    Limit:
+      name: limit
+      in: query
+      description: 'Pagination limit: number of rows to return. The maximum is 20000.
+        When omitted, this number defaults to 100'
+      schema:
+        maximum: 20000
+        minimum: 0
+        type: integer
+        format: int32
+        default: 100
+  responses:
+    '400':
+      description: The request failed because the information provided was incorrect.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    '400editors':
+      description: The request failed because the provided body had an invalid
+        structure or was malformed, or because one or more non-contributor users
+        or groups were specified as editors. Only users or groups with the contributor
+        role may be assigned as editors.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    '400readers':
+      description: The request failed because the provided body had an invalid
+        structure or was malformed, or because one or more non-consumer users
+        or groups were specified as readers. Only users or groups with the consumer
+        role may be assigned as readers.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    '401':
+      description: The request failed because the authentication credentials were incorrect or missing.
+    '403repository':
+      description: The request failed because the client is not authorized to access the repository.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    '404':
+      description: The request failed because one of the referenced resources
+        does not exist. Details may be provided in the response body.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+            

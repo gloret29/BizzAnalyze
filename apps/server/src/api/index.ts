@@ -10,6 +10,7 @@ import { createProgressRouter } from './routes/progress';
 import { createGraphRouter } from './routes/graph';
 import { createExportRouter } from './routes/export';
 import { createAnalyzeRouter } from './routes/analyze';
+import { createDataBlocksRouter } from './routes/datablocks';
 import type { Neo4jStorage } from '../services/neo4j/storage';
 
 export function createApi(
@@ -34,6 +35,7 @@ export function createApi(
   app.use('/api/sync', createSyncRouter());
   app.use('/api/import', createImportRouter(storage));
   app.use('/api/objects', createObjectsRouter(storage));
+  app.use('/api/datablocks', createDataBlocksRouter(storage));
   app.use('/api/stats', createStatsRouter(storage));
   app.use('/api/logs', createLogsRouter());
   app.use('/api/progress', createProgressRouter());

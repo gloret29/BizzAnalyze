@@ -58,18 +58,18 @@ export default function ExportPage() {
 
   return (
     <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
-      <h1>Export de données</h1>
+      <h1 style={{ color: 'var(--text-primary)' }}>Export de données</h1>
 
       <div
         style={{
           marginTop: '2rem',
           padding: '2rem',
-          backgroundColor: '#f8f9fa',
-          borderRadius: '8px',
-          border: '1px solid #ddd',
+          backgroundColor: 'var(--bg-card)',
+          borderRadius: 'var(--radius-md)',
+          border: '1px solid var(--border-color)',
         }}
       >
-        <h2 style={{ marginTop: 0, marginBottom: '1.5rem' }}>Options d'export</h2>
+        <h2 style={{ marginTop: 0, marginBottom: '1.5rem', color: 'var(--text-primary)' }}>Options d'export</h2>
 
         {/* Format */}
         <div style={{ marginBottom: '1.5rem' }}>
@@ -79,6 +79,7 @@ export default function ExportPage() {
               marginBottom: '0.5rem',
               fontWeight: 'bold',
               fontSize: '1rem',
+              color: 'var(--text-primary)',
             }}
           >
             Format d'export
@@ -91,9 +92,11 @@ export default function ExportPage() {
                 gap: '0.5rem',
                 cursor: 'pointer',
                 padding: '0.5rem 1rem',
-                border: format === 'csv' ? '2px solid #0070f3' : '2px solid #ddd',
-                borderRadius: '4px',
-                backgroundColor: format === 'csv' ? '#e6f2ff' : 'white',
+                border: format === 'csv' ? '2px solid var(--accent-primary)' : '2px solid var(--border-color)',
+                borderRadius: 'var(--radius-sm)',
+                backgroundColor: format === 'csv' ? 'rgba(99, 102, 241, 0.2)' : 'var(--bg-tertiary)',
+                color: 'var(--text-primary)',
+                transition: 'all 0.2s ease',
               }}
             >
               <input
@@ -113,9 +116,11 @@ export default function ExportPage() {
                 gap: '0.5rem',
                 cursor: 'pointer',
                 padding: '0.5rem 1rem',
-                border: format === 'json' ? '2px solid #0070f3' : '2px solid #ddd',
-                borderRadius: '4px',
-                backgroundColor: format === 'json' ? '#e6f2ff' : 'white',
+                border: format === 'json' ? '2px solid var(--accent-primary)' : '2px solid var(--border-color)',
+                borderRadius: 'var(--radius-sm)',
+                backgroundColor: format === 'json' ? 'rgba(99, 102, 241, 0.2)' : 'var(--bg-tertiary)',
+                color: 'var(--text-primary)',
+                transition: 'all 0.2s ease',
               }}
             >
               <input
@@ -135,9 +140,11 @@ export default function ExportPage() {
                 gap: '0.5rem',
                 cursor: 'pointer',
                 padding: '0.5rem 1rem',
-                border: format === 'excel' ? '2px solid #0070f3' : '2px solid #ddd',
-                borderRadius: '4px',
-                backgroundColor: format === 'excel' ? '#e6f2ff' : 'white',
+                border: format === 'excel' ? '2px solid var(--accent-primary)' : '2px solid var(--border-color)',
+                borderRadius: 'var(--radius-sm)',
+                backgroundColor: format === 'excel' ? 'rgba(99, 102, 241, 0.2)' : 'var(--bg-tertiary)',
+                color: 'var(--text-primary)',
+                transition: 'all 0.2s ease',
               }}
             >
               <input
@@ -155,7 +162,7 @@ export default function ExportPage() {
 
         {/* Filtres */}
         <div style={{ marginBottom: '1.5rem' }}>
-          <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>Filtres (optionnels)</h3>
+          <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', color: 'var(--text-primary)' }}>Filtres (optionnels)</h3>
           
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div>
@@ -164,6 +171,7 @@ export default function ExportPage() {
                   display: 'block',
                   marginBottom: '0.5rem',
                   fontWeight: 'bold',
+                  color: 'var(--text-primary)',
                 }}
               >
                 Type d'objet
@@ -176,8 +184,10 @@ export default function ExportPage() {
                 style={{
                   width: '100%',
                   padding: '0.5rem',
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: 'var(--radius-sm)',
+                  backgroundColor: 'var(--bg-tertiary)',
+                  color: 'var(--text-primary)',
                 }}
               />
             </div>
@@ -187,6 +197,7 @@ export default function ExportPage() {
                   display: 'block',
                   marginBottom: '0.5rem',
                   fontWeight: 'bold',
+                  color: 'var(--text-primary)',
                 }}
               >
                 Recherche
@@ -199,8 +210,10 @@ export default function ExportPage() {
                 style={{
                   width: '100%',
                   padding: '0.5rem',
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: 'var(--radius-sm)',
+                  backgroundColor: 'var(--bg-tertiary)',
+                  color: 'var(--text-primary)',
                 }}
               />
             </div>
@@ -216,6 +229,7 @@ export default function ExportPage() {
               gap: '0.5rem',
               cursor: 'pointer',
               fontSize: '1rem',
+              color: 'var(--text-primary)',
             }}
           >
             <input
@@ -226,7 +240,7 @@ export default function ExportPage() {
             />
             <strong>Inclure les relations</strong>
           </label>
-          <p style={{ marginTop: '0.5rem', color: '#666', fontSize: '0.9rem', marginLeft: '1.5rem' }}>
+          <p style={{ marginTop: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem', marginLeft: '1.5rem' }}>
             Si coché, les relations entre objets seront incluses dans l'export (pour JSON uniquement)
           </p>
         </div>
@@ -237,13 +251,24 @@ export default function ExportPage() {
           disabled={exporting}
           style={{
             padding: '0.75rem 2rem',
-            backgroundColor: exporting ? '#ccc' : '#0070f3',
+            backgroundColor: exporting ? 'var(--bg-tertiary)' : 'var(--accent-primary)',
             color: 'white',
             border: 'none',
-            borderRadius: '4px',
+            borderRadius: 'var(--radius-sm)',
             cursor: exporting ? 'not-allowed' : 'pointer',
             fontSize: '1rem',
             fontWeight: 'bold',
+            transition: 'all 0.2s ease',
+          }}
+          onMouseEnter={(e) => {
+            if (!exporting) {
+              e.currentTarget.style.backgroundColor = 'var(--accent-primary-hover)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!exporting) {
+              e.currentTarget.style.backgroundColor = 'var(--accent-primary)';
+            }
           }}
         >
           {exporting ? '⏳ Export en cours...' : `📥 Exporter en ${format.toUpperCase()}`}
@@ -255,13 +280,13 @@ export default function ExportPage() {
         style={{
           marginTop: '2rem',
           padding: '1.5rem',
-          backgroundColor: '#e7f3ff',
-          borderRadius: '8px',
-          border: '1px solid #b3d9ff',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          borderRadius: 'var(--radius-md)',
+          border: '1px solid var(--accent-info)',
         }}
       >
-        <h3 style={{ marginTop: 0 }}>ℹ️ Informations</h3>
-        <ul style={{ marginBottom: 0, paddingLeft: '1.5rem' }}>
+        <h3 style={{ marginTop: 0, color: 'var(--text-primary)' }}>ℹ️ Informations</h3>
+        <ul style={{ marginBottom: 0, paddingLeft: '1.5rem', color: 'var(--text-secondary)' }}>
           <li>
             <strong>CSV</strong> : Format tableur, parfait pour Excel ou Google Sheets
           </li>
@@ -282,6 +307,7 @@ export default function ExportPage() {
     </div>
   );
 }
+
 
 
 

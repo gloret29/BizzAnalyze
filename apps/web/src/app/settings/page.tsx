@@ -238,13 +238,13 @@ export default function SettingsPage() {
       <section
         style={{
           padding: '1.5rem',
-          border: '1px solid #ddd',
-          borderRadius: '8px',
+          border: '1px solid var(--border-color)',
+          borderRadius: 'var(--radius-md)',
           marginBottom: '2rem',
-          backgroundColor: 'white',
+          backgroundColor: 'var(--bg-card)',
         }}
       >
-        <h2 style={{ marginTop: 0, marginBottom: '1.5rem' }}>
+        <h2 style={{ marginTop: 0, marginBottom: '1.5rem', color: 'var(--text-primary)' }}>
           🔌 Configuration de l'API BizzDesign
         </h2>
 
@@ -254,6 +254,7 @@ export default function SettingsPage() {
               display: 'block',
               marginBottom: '0.5rem',
               fontWeight: 'bold',
+              color: 'var(--text-primary)',
             }}
           >
             URL de l'API
@@ -266,9 +267,11 @@ export default function SettingsPage() {
             style={{
               width: '100%',
               padding: '0.75rem',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
+              border: '1px solid var(--border-color)',
+              borderRadius: 'var(--radius-sm)',
               fontSize: '1rem',
+              backgroundColor: 'var(--bg-tertiary)',
+              color: 'var(--text-primary)',
             }}
           />
         </div>
@@ -279,6 +282,7 @@ export default function SettingsPage() {
               display: 'block',
               marginBottom: '0.5rem',
               fontWeight: 'bold',
+              color: 'var(--text-primary)',
             }}
           >
             Client ID
@@ -291,9 +295,11 @@ export default function SettingsPage() {
             style={{
               width: '100%',
               padding: '0.75rem',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
+              border: '1px solid var(--border-color)',
+              borderRadius: 'var(--radius-sm)',
               fontSize: '1rem',
+              backgroundColor: 'var(--bg-tertiary)',
+              color: 'var(--text-primary)',
             }}
           />
         </div>
@@ -304,6 +310,7 @@ export default function SettingsPage() {
               display: 'block',
               marginBottom: '0.5rem',
               fontWeight: 'bold',
+              color: 'var(--text-primary)',
             }}
           >
             Client Secret
@@ -311,7 +318,7 @@ export default function SettingsPage() {
               <span
                 style={{
                   marginLeft: '0.5rem',
-                  color: '#090',
+                  color: 'var(--accent-success)',
                   fontWeight: 'normal',
                   fontSize: '0.875rem',
                 }}
@@ -328,13 +335,15 @@ export default function SettingsPage() {
             style={{
               width: '100%',
               padding: '0.75rem',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
+              border: '1px solid var(--border-color)',
+              borderRadius: 'var(--radius-sm)',
               fontSize: '1rem',
+              backgroundColor: 'var(--bg-tertiary)',
+              color: 'var(--text-primary)',
             }}
           />
           {hasSecret && (
-            <p style={{ fontSize: '0.875rem', color: '#666', marginTop: '0.25rem' }}>
+            <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
               Laissez vide pour conserver le secret actuel
             </p>
           )}
@@ -346,12 +355,23 @@ export default function SettingsPage() {
             disabled={testing || !apiUrl || !clientId}
             style={{
               padding: '0.75rem 1.5rem',
-              backgroundColor: testing ? '#ccc' : '#28a745',
+              backgroundColor: testing ? 'var(--bg-tertiary)' : 'var(--accent-success)',
               color: 'white',
               border: 'none',
-              borderRadius: '4px',
+              borderRadius: 'var(--radius-sm)',
               cursor: testing || !apiUrl || !clientId ? 'not-allowed' : 'pointer',
               fontSize: '1rem',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              if (!testing && apiUrl && clientId) {
+                e.currentTarget.style.backgroundColor = '#059669';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!testing && apiUrl && clientId) {
+                e.currentTarget.style.backgroundColor = 'var(--accent-success)';
+              }
             }}
           >
             {testing ? 'Test en cours...' : '🔗 Tester la connexion'}
@@ -362,12 +382,23 @@ export default function SettingsPage() {
             disabled={saving || !apiUrl || !clientId}
             style={{
               padding: '0.75rem 1.5rem',
-              backgroundColor: saving ? '#ccc' : '#0070f3',
+              backgroundColor: saving ? 'var(--bg-tertiary)' : 'var(--accent-primary)',
               color: 'white',
               border: 'none',
-              borderRadius: '4px',
+              borderRadius: 'var(--radius-sm)',
               cursor: saving || !apiUrl || !clientId ? 'not-allowed' : 'pointer',
               fontSize: '1rem',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              if (!saving && apiUrl && clientId) {
+                e.currentTarget.style.backgroundColor = 'var(--accent-primary-hover)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!saving && apiUrl && clientId) {
+                e.currentTarget.style.backgroundColor = 'var(--accent-primary)';
+              }
             }}
           >
             {saving ? 'Sauvegarde...' : '💾 Sauvegarder'}
@@ -379,12 +410,12 @@ export default function SettingsPage() {
       <section
         style={{
           padding: '1.5rem',
-          border: '1px solid #ddd',
-          borderRadius: '8px',
-          backgroundColor: 'white',
+          border: '1px solid var(--border-color)',
+          borderRadius: 'var(--radius-md)',
+          backgroundColor: 'var(--bg-card)',
         }}
       >
-        <h2 style={{ marginTop: 0, marginBottom: '1.5rem' }}>
+        <h2 style={{ marginTop: 0, marginBottom: '1.5rem', color: 'var(--text-primary)' }}>
           📦 Sélection du Repository
         </h2>
 
@@ -394,6 +425,7 @@ export default function SettingsPage() {
               display: 'block',
               marginBottom: '0.5rem',
               fontWeight: 'bold',
+              color: 'var(--text-primary)',
             }}
           >
             Repository
@@ -406,10 +438,11 @@ export default function SettingsPage() {
               style={{
                 flex: 1,
                 padding: '0.75rem',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
+                border: '1px solid var(--border-color)',
+                borderRadius: 'var(--radius-sm)',
                 fontSize: '1rem',
-                backgroundColor: 'white',
+                backgroundColor: 'var(--bg-tertiary)',
+                color: 'var(--text-primary)',
               }}
             >
               <option value="">
@@ -431,12 +464,13 @@ export default function SettingsPage() {
               disabled={loadingRepositories || !apiUrl || !clientId || !hasSecret}
               style={{
                 padding: '0.75rem 1rem',
-                backgroundColor: loadingRepositories ? '#ccc' : '#6c757d',
+                backgroundColor: loadingRepositories ? 'var(--bg-tertiary)' : 'var(--bg-hover)',
                 color: 'white',
                 border: 'none',
-                borderRadius: '4px',
+                borderRadius: 'var(--radius-sm)',
                 cursor: loadingRepositories ? 'not-allowed' : 'pointer',
                 fontSize: '1rem',
+                transition: 'all 0.2s ease',
               }}
             >
               🔄
@@ -448,17 +482,17 @@ export default function SettingsPage() {
           <div
             style={{
               padding: '1rem',
-              backgroundColor: '#f8f9fa',
-              borderRadius: '4px',
+              backgroundColor: 'var(--bg-tertiary)',
+              borderRadius: 'var(--radius-sm)',
               marginTop: '1rem',
             }}
           >
-            <p style={{ margin: 0 }}>
+            <p style={{ margin: 0, color: 'var(--text-primary)' }}>
               <strong>Repository sélectionné :</strong>{' '}
               {repositories.find((repo) => repo.id === repositoryId)?.name || repositoryId}
             </p>
-            <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.875rem', color: '#666' }}>
-              ID: <code>{repositoryId}</code>
+            <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+              ID: <code style={{ color: 'var(--accent-primary)' }}>{repositoryId}</code>
             </p>
           </div>
         )}
@@ -467,13 +501,13 @@ export default function SettingsPage() {
           <div
             style={{
               padding: '1rem',
-              backgroundColor: '#fff3cd',
-              border: '1px solid #ffc107',
-              borderRadius: '4px',
+              backgroundColor: 'rgba(245, 158, 11, 0.1)',
+              border: '1px solid var(--accent-warning)',
+              borderRadius: 'var(--radius-sm)',
               marginTop: '1rem',
             }}
           >
-            <p style={{ margin: 0 }}>
+            <p style={{ margin: 0, color: 'var(--accent-warning)' }}>
               ⚠️ Pour charger la liste des Repositories, veuillez d'abord configurer
               et sauvegarder vos identifiants API BizzDesign.
             </p>
@@ -489,11 +523,18 @@ export default function SettingsPage() {
             style={{
               display: 'inline-block',
               padding: '1rem 2rem',
-              backgroundColor: '#0070f3',
+              backgroundColor: 'var(--accent-primary)',
               color: 'white',
-              borderRadius: '8px',
+              borderRadius: 'var(--radius-md)',
               textDecoration: 'none',
               fontSize: '1rem',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--accent-primary-hover)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--accent-primary)';
             }}
           >
             Aller au tableau de bord →

@@ -3,6 +3,7 @@ import type {
   Repository,
   BizzDesignObject,
   Relationship,
+  DataBlock,
 } from '@bizzanalyze/types';
 import { chunk, extractObjectName } from '@bizzanalyze/utils';
 import { Transaction, int } from 'neo4j-driver';
@@ -56,13 +57,38 @@ export class Neo4jStorage {
       metadata: JSON.stringify(rel.metadata || {}),
     }));
 
+    // Extraire et préparer les data blocks
+    const preparedDataBlocks: Array<{
+      id: string; // Format: objectId:namespace:name
+      objectId: string;
+      namespace: string;
+      name: string;
+      values: string; // JSON stringifié
+      updatedAt: string;
+    }> = [];
+    
+    objects.forEach((obj) => {
+      if (obj.documents && obj.documents.length > 0) {
+        obj.documents.forEach((doc) => {
+          preparedDataBlocks.push({
+            id: `${obj.id}:${doc.schemaNamespace}:${doc.schemaName}`,
+            objectId: obj.id,
+            namespace: doc.schemaNamespace,
+            name: doc.schemaName,
+            values: JSON.stringify(doc.values || {}),
+            updatedAt: doc.updatedAt || new Date().toISOString(),
+          });
+        });
+      }
+    });
+
     // Collecter tous les tags uniques
     const allTags = new Set<string>();
     preparedObjects.forEach((obj) => {
       obj.tags.forEach((tag) => allTags.add(tag));
     });
 
-    console.log(`✓ Données préparées (${allTags.size} tags uniques)`);
+    console.log(`✓ Données préparées (${allTags.size} tags uniques, ${preparedDataBlocks.length} data blocks)`);
 
     // OPTIMISATION 2: Transaction séparée pour créer/mettre à jour le Repository
     await this.client.executeTransaction(async (tx: Transaction) => {
@@ -109,7 +135,16 @@ export class Neo4jStorage {
       `
       );
       
-      // Étape 3: Supprimer les tags orphelins (ceux qui ne sont plus liés à aucun objet)
+      // Étape 3: Supprimer les data blocks orphelins (ceux qui ne sont plus liés à aucun objet)
+      await tx.run(
+        `
+        MATCH (db:DataBlock)
+        WHERE NOT (db)<-[:HAS_DATABLOCK]-()
+        DELETE db
+      `
+      );
+      
+      // Étape 4: Supprimer les tags orphelins (ceux qui ne sont plus liés à aucun objet)
       await tx.run(
         `
         MATCH (t:Tag)
@@ -167,6 +202,42 @@ export class Neo4jStorage {
       console.log(`  ✓ Batch ${i + 1}/${objectBatches.length}: ${batch.length} objets | Total: ${processedObjects}/${totalObjects} (${progressPercent}%) | ${batchDuration}ms | ETA: ~${estimatedTimeRemaining}s`);
     }
     console.log(`✓ Tous les objets créés (${Date.now() - objectsStartTime}ms)`);
+
+    // OPTIMISATION 5.5: Créer les data blocks avec leurs relations
+    if (preparedDataBlocks.length > 0) {
+      const dataBlocksStartTime = Date.now();
+      console.log(`📦 Création des data blocks (${preparedDataBlocks.length} data blocks)...`);
+      const dataBlockBatches = chunk(preparedDataBlocks, batchSize);
+      let processedDataBlocks = 0;
+      
+      for (let i = 0; i < dataBlockBatches.length; i++) {
+        const batch = dataBlockBatches[i];
+        const batchStartTime = Date.now();
+        
+        await this.client.executeTransaction(async (tx: Transaction) => {
+          // Créer les data blocks et leurs relations avec les objets
+          await tx.run(
+            `
+            UNWIND $dataBlocks AS db
+            MATCH (o:Object {id: db.objectId})
+            MERGE (datablock:DataBlock {id: db.id})
+            SET datablock.namespace = db.namespace,
+                datablock.name = db.name,
+                datablock.values = db.values,
+                datablock.updatedAt = db.updatedAt
+            MERGE (o)-[:HAS_DATABLOCK]->(datablock)
+          `,
+            { dataBlocks: batch }
+          );
+        });
+        
+        processedDataBlocks += batch.length;
+        const batchDuration = Date.now() - batchStartTime;
+        const progressPercent = ((processedDataBlocks / preparedDataBlocks.length) * 100).toFixed(1);
+        console.log(`  ✓ Data blocks batch ${i + 1}/${dataBlockBatches.length}: ${batch.length} data blocks | Total: ${processedDataBlocks}/${preparedDataBlocks.length} (${progressPercent}%) | ${batchDuration}ms`);
+      }
+      console.log(`✓ Tous les data blocks créés (${Date.now() - dataBlocksStartTime}ms)`);
+    }
 
     // OPTIMISATION 6: Créer les tags en une seule transaction séparée
     if (allTags.size > 0) {
@@ -424,6 +495,182 @@ export class Neo4jStorage {
   }
 
   /**
+   * Récupère tous les data blocks d'un repository
+   */
+  async getDataBlocks(
+    repositoryId: string,
+    filters?: {
+      namespace?: string;
+      name?: string;
+      objectId?: string;
+    }
+  ): Promise<any[]> {
+    try {
+      const conditions: string[] = [
+        '(r:Repository {id: $repositoryId})-[:CONTAINS]->(o:Object)-[:HAS_DATABLOCK]->(db:DataBlock)'
+      ];
+      const params: any = { repositoryId };
+
+      if (filters?.namespace) {
+        conditions.push('db.namespace = $namespace');
+        params.namespace = filters.namespace;
+      }
+
+      if (filters?.name) {
+        conditions.push('db.name = $name');
+        params.name = filters.name;
+      }
+
+      if (filters?.objectId) {
+        conditions.push('o.id = $objectId');
+        params.objectId = filters.objectId;
+      }
+
+      const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+      const query = `
+        MATCH (r:Repository {id: $repositoryId})-[:CONTAINS]->(o:Object)-[:HAS_DATABLOCK]->(db:DataBlock)
+        ${whereClause}
+        RETURN db.id as id,
+               db.namespace as namespace,
+               db.name as name,
+               db.values as values,
+               db.updatedAt as updatedAt,
+               o.id as objectId,
+               o.name as objectName
+        ORDER BY o.name, db.namespace, db.name
+      `;
+
+      const result = await this.client.executeQuery(query, params);
+
+      return result.map((record: any) => {
+        let values = {};
+        if (record.values) {
+          try {
+            values = typeof record.values === 'string' 
+              ? JSON.parse(record.values) 
+              : record.values;
+          } catch (e) {
+            console.warn(`[getDataBlocks] Erreur de parsing des values pour ${record.id}:`, e);
+            values = {};
+          }
+        }
+
+        return {
+          id: record.id,
+          objectId: record.objectId,
+          objectName: record.objectName,
+          namespace: record.namespace,
+          name: record.name,
+          values,
+          updatedAt: record.updatedAt,
+        };
+      });
+    } catch (error: any) {
+      console.error('[getDataBlocks] Error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Récupère un data block par son ID
+   */
+  async getDataBlockById(dataBlockId: string): Promise<any | null> {
+    try {
+      const result = await this.client.executeQuery(
+        `
+        MATCH (o:Object)-[:HAS_DATABLOCK]->(db:DataBlock {id: $dataBlockId})
+        RETURN db.id as id,
+               db.namespace as namespace,
+               db.name as name,
+               db.values as values,
+               db.updatedAt as updatedAt,
+               o.id as objectId,
+               o.name as objectName,
+               o.type as objectType
+      `,
+        { dataBlockId }
+      );
+
+      if (result.length === 0) {
+        return null;
+      }
+
+      const record = result[0];
+      let values = {};
+      if (record.values) {
+        try {
+          values = typeof record.values === 'string' 
+            ? JSON.parse(record.values) 
+            : record.values;
+        } catch (e) {
+          console.warn(`[getDataBlockById] Erreur de parsing des values pour ${dataBlockId}:`, e);
+          values = {};
+        }
+      }
+
+      return {
+        id: record.id,
+        objectId: record.objectId,
+        objectName: record.objectName,
+        objectType: record.objectType,
+        namespace: record.namespace,
+        name: record.name,
+        values,
+        updatedAt: record.updatedAt,
+      };
+    } catch (error: any) {
+      console.error(`[getDataBlockById] Erreur pour le data block ${dataBlockId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Récupère tous les data blocks d'un objet
+   */
+  async getDataBlocksByObject(objectId: string): Promise<any[]> {
+    try {
+      const result = await this.client.executeQuery(
+        `
+        MATCH (o:Object {id: $objectId})-[:HAS_DATABLOCK]->(db:DataBlock)
+        RETURN db.id as id,
+               db.namespace as namespace,
+               db.name as name,
+               db.values as values,
+               db.updatedAt as updatedAt
+        ORDER BY db.namespace, db.name
+      `,
+        { objectId }
+      );
+
+      return result.map((record: any) => {
+        let values = {};
+        if (record.values) {
+          try {
+            values = typeof record.values === 'string' 
+              ? JSON.parse(record.values) 
+              : record.values;
+          } catch (e) {
+            console.warn(`[getDataBlocksByObject] Erreur de parsing des values pour ${record.id}:`, e);
+            values = {};
+          }
+        }
+
+        return {
+          id: record.id,
+          namespace: record.namespace,
+          name: record.name,
+          values,
+          updatedAt: record.updatedAt,
+        };
+      });
+    } catch (error: any) {
+      console.error(`[getDataBlocksByObject] Erreur pour l'objet ${objectId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
    * Récupère un objet par son ID
    */
   async getObjectById(objectId: string): Promise<any | null> {
@@ -434,11 +681,19 @@ export class Neo4jStorage {
         OPTIONAL MATCH (o)-[:HAS_TAG]->(t:Tag)
         OPTIONAL MATCH (o)-[r:RELATES_TO]->(target:Object)
         OPTIONAL MATCH (source:Object)-[r2:RELATES_TO]->(o)
+        OPTIONAL MATCH (o)-[:HAS_DATABLOCK]->(db:DataBlock)
         RETURN o.id as id, o.type as type, o.name as name, o.objectName as objectName, o.description as description, 
                o.properties as properties, o.metadata as metadata,
                collect(DISTINCT t.name) as tags,
                collect(DISTINCT {id: target.id, name: target.name, type: r.type}) as outgoing,
-               collect(DISTINCT {id: source.id, name: source.name, type: r2.type}) as incoming
+               collect(DISTINCT {id: source.id, name: source.name, type: r2.type}) as incoming,
+               collect(DISTINCT {
+                 id: db.id,
+                 namespace: db.namespace,
+                 name: db.name,
+                 values: db.values,
+                 updatedAt: db.updatedAt
+               }) as dataBlocks
       `,
         { objectId }
       );
@@ -492,6 +747,30 @@ export class Neo4jStorage {
       const outgoing = (record.outgoing || []).filter((rel: any) => rel.id && rel.id !== null);
       const incoming = (record.incoming || []).filter((rel: any) => rel.id && rel.id !== null);
 
+      // Parser les data blocks
+      const dataBlocks = (record.dataBlocks || [])
+        .filter((db: any) => db && db.id && db.id !== null)
+        .map((db: any) => {
+          let values = {};
+          if (db.values) {
+            try {
+              values = typeof db.values === 'string' 
+                ? JSON.parse(db.values) 
+                : db.values;
+            } catch (e) {
+              console.warn(`[getObjectById] Erreur de parsing des values pour data block ${db.id}:`, e);
+              values = {};
+            }
+          }
+          return {
+            id: db.id,
+            namespace: db.namespace,
+            name: db.name,
+            values,
+            updatedAt: db.updatedAt,
+          };
+        });
+
       const finalName = parsedObjectName || record.name || '';
       
       // Log pour debug si le nom est vide
@@ -508,6 +787,7 @@ export class Neo4jStorage {
         properties,
         metadata,
         tags: (record.tags || []).filter((tag: any) => tag !== null),
+        dataBlocks,
         relationships: {
           outgoing,
           incoming,

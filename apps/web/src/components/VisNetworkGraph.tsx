@@ -108,14 +108,41 @@ export function VisNetworkGraph({
         const options = {
           nodes: {
             shape: 'box',
-            font: { size: 14 },
+            font: { 
+              size: 14,
+              color: '#e8eaf6',
+              face: 'Arial',
+            },
             borderWidth: 2,
-            shadow: true,
+            borderColor: '#6366f1',
+            color: {
+              background: '#1e2442',
+              border: '#6366f1',
+              highlight: {
+                background: '#252b4a',
+                border: '#818cf8',
+              },
+            },
+            shadow: {
+              enabled: true,
+              color: 'rgba(0, 0, 0, 0.5)',
+              size: 5,
+            },
           },
           edges: {
             arrows: { to: { enabled: true } },
             smooth: { type: 'continuous' },
-            font: { size: 12, align: 'middle' },
+            font: { 
+              size: 12, 
+              align: 'middle',
+              color: '#b0b8d1',
+            },
+            color: {
+              color: '#6366f1',
+              highlight: '#818cf8',
+              hover: '#818cf8',
+            },
+            width: 2,
           },
           physics: {
             enabled: true,
@@ -129,6 +156,9 @@ export function VisNetworkGraph({
           },
           layout: {
             improvedLayout: true,
+          },
+          configure: {
+            enabled: false,
           },
         };
 
@@ -196,12 +226,12 @@ export function VisNetworkGraph({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: '#666',
+          color: 'var(--text-secondary)',
         }}
       >
         <div style={{ textAlign: 'center' }}>
-          <p>📦 Installation requise</p>
-          <p style={{ fontSize: '0.9rem', marginTop: '0.5rem' }}>
+          <p style={{ color: 'var(--text-primary)' }}>📦 Installation requise</p>
+          <p style={{ fontSize: '0.9rem', marginTop: '0.5rem', color: 'var(--text-secondary)' }}>
             Installez vis-network pour la visualisation interactive
           </p>
           <code
@@ -209,13 +239,15 @@ export function VisNetworkGraph({
               display: 'block',
               marginTop: '0.5rem',
               padding: '0.5rem',
-              backgroundColor: '#f0f0f0',
-              borderRadius: '4px',
+              backgroundColor: 'var(--bg-tertiary)',
+              borderRadius: 'var(--radius-sm)',
+              color: 'var(--text-primary)',
+              fontFamily: 'monospace',
             }}
           >
             cd apps/web && npm install vis-network
           </code>
-          <p style={{ fontSize: '0.8rem', marginTop: '0.5rem', color: '#999' }}>
+          <p style={{ fontSize: '0.8rem', marginTop: '0.5rem', color: 'var(--text-tertiary)' }}>
             Vérifiez la console pour plus de détails
           </p>
         </div>

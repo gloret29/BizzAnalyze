@@ -21,6 +21,7 @@ out/
 # Token storage
 .bizzdesign-token*.json
 .bizzdesign-token.json
+.portainer-config.local.ps1
 
 # Configuration files with secrets
 **/config.json

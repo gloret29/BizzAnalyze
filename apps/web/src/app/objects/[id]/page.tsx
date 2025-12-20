@@ -54,7 +54,7 @@ export default function ObjectDetailPage() {
 
   if (loading) {
     return (
-      <div style={{ padding: '2rem', textAlign: 'center' }}>
+      <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-primary)' }}>
         <p>Chargement...</p>
       </div>
     );
@@ -66,10 +66,11 @@ export default function ObjectDetailPage() {
         <div
           style={{
             padding: '1rem',
-            backgroundColor: '#fee',
-            border: '1px solid #fcc',
-            borderRadius: '4px',
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            border: '1px solid var(--accent-error)',
+            borderRadius: 'var(--radius-sm)',
             marginBottom: '1rem',
+            color: 'var(--accent-error)',
           }}
         >
           <strong>Erreur :</strong> {error || 'Objet non trouvé'}
@@ -79,7 +80,7 @@ export default function ObjectDetailPage() {
           style={{
             display: 'inline-block',
             padding: '0.5rem 1rem',
-            color: '#0070f3',
+            color: 'var(--accent-primary)',
             textDecoration: 'none',
           }}
         >
@@ -97,7 +98,7 @@ export default function ObjectDetailPage() {
           style={{
             display: 'inline-block',
             marginBottom: '1rem',
-            color: '#0070f3',
+            color: 'var(--accent-primary)',
             textDecoration: 'none',
           }}
         >
@@ -112,12 +113,12 @@ export default function ObjectDetailPage() {
           }}
         >
           <div>
-            <h1 style={{ margin: 0, marginBottom: '0.5rem' }}>{object.name}</h1>
+            <h1 style={{ margin: 0, marginBottom: '0.5rem', color: 'var(--text-primary)' }}>{object.name}</h1>
             <span
               style={{
                 padding: '0.25rem 0.75rem',
-                backgroundColor: '#e3f2fd',
-                color: '#1976d2',
+                backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                color: 'var(--accent-primary)',
                 borderRadius: '12px',
                 fontSize: '0.875rem',
               }}
@@ -132,8 +133,8 @@ export default function ObjectDetailPage() {
         {/* Description */}
         {object.description && (
           <section>
-            <h2>Description</h2>
-            <p style={{ color: '#666', lineHeight: '1.6' }}>
+            <h2 style={{ color: 'var(--text-primary)' }}>Description</h2>
+            <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
               {object.description}
             </p>
           </section>
@@ -142,16 +143,17 @@ export default function ObjectDetailPage() {
         {/* Tags */}
         {object.tags && object.tags.length > 0 && (
           <section>
-            <h2>Tags</h2>
+            <h2 style={{ color: 'var(--text-primary)' }}>Tags</h2>
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
               {object.tags.map((tag) => (
                 <span
                   key={tag}
                   style={{
                     padding: '0.25rem 0.75rem',
-                    backgroundColor: '#f0f0f0',
+                    backgroundColor: 'var(--bg-tertiary)',
                     borderRadius: '12px',
                     fontSize: '0.875rem',
+                    color: 'var(--text-primary)',
                   }}
                 >
                   {tag}
@@ -164,7 +166,7 @@ export default function ObjectDetailPage() {
         {/* Relations sortantes */}
         {object.relationships?.outgoing && object.relationships.outgoing.length > 0 && (
           <section>
-            <h2>Relations sortantes</h2>
+            <h2 style={{ color: 'var(--text-primary)' }}>Relations sortantes</h2>
             <div style={{ display: 'grid', gap: '0.5rem' }}>
               {object.relationships.outgoing.map((rel) => (
                 <Link
@@ -173,16 +175,26 @@ export default function ObjectDetailPage() {
                   style={{
                     display: 'block',
                     padding: '1rem',
-                    border: '1px solid #ddd',
-                    borderRadius: '4px',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: 'var(--radius-sm)',
                     textDecoration: 'none',
                     color: 'inherit',
+                    backgroundColor: 'var(--bg-card)',
+                    transition: 'all 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--border-hover)';
+                    e.currentTarget.style.backgroundColor = 'var(--bg-hover)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--border-color)';
+                    e.currentTarget.style.backgroundColor = 'var(--bg-card)';
                   }}
                 >
-                  <div style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}>
+                  <div style={{ fontWeight: 'bold', marginBottom: '0.25rem', color: 'var(--text-primary)' }}>
                     {rel.name}
                   </div>
-                  <div style={{ fontSize: '0.875rem', color: '#666' }}>
+                  <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
                     Type: {rel.type}
                   </div>
                 </Link>
@@ -194,7 +206,7 @@ export default function ObjectDetailPage() {
         {/* Relations entrantes */}
         {object.relationships?.incoming && object.relationships.incoming.length > 0 && (
           <section>
-            <h2>Relations entrantes</h2>
+            <h2 style={{ color: 'var(--text-primary)' }}>Relations entrantes</h2>
             <div style={{ display: 'grid', gap: '0.5rem' }}>
               {object.relationships.incoming.map((rel) => (
                 <Link
@@ -203,16 +215,26 @@ export default function ObjectDetailPage() {
                   style={{
                     display: 'block',
                     padding: '1rem',
-                    border: '1px solid #ddd',
-                    borderRadius: '4px',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: 'var(--radius-sm)',
                     textDecoration: 'none',
                     color: 'inherit',
+                    backgroundColor: 'var(--bg-card)',
+                    transition: 'all 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--border-hover)';
+                    e.currentTarget.style.backgroundColor = 'var(--bg-hover)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--border-color)';
+                    e.currentTarget.style.backgroundColor = 'var(--bg-card)';
                   }}
                 >
-                  <div style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}>
+                  <div style={{ fontWeight: 'bold', marginBottom: '0.25rem', color: 'var(--text-primary)' }}>
                     {rel.name}
                   </div>
-                  <div style={{ fontSize: '0.875rem', color: '#666' }}>
+                  <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
                     Type: {rel.type}
                   </div>
                 </Link>
@@ -224,22 +246,24 @@ export default function ObjectDetailPage() {
         {/* Propriétés */}
         {object.properties && Object.keys(object.properties).length > 0 && (
           <section>
-            <h2>Propriétés</h2>
+            <h2 style={{ color: 'var(--text-primary)' }}>Propriétés</h2>
             <div
               style={{
-                border: '1px solid #ddd',
-                borderRadius: '4px',
+                border: '1px solid var(--border-color)',
+                borderRadius: 'var(--radius-sm)',
                 overflow: 'hidden',
+                backgroundColor: 'var(--bg-card)',
               }}
             >
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead style={{ backgroundColor: '#f9f9f9' }}>
+                <thead style={{ backgroundColor: 'var(--bg-tertiary)' }}>
                   <tr>
                     <th
                       style={{
                         padding: '0.75rem',
                         textAlign: 'left',
-                        borderBottom: '1px solid #ddd',
+                        borderBottom: '1px solid var(--border-color)',
+                        color: 'var(--text-primary)',
                       }}
                     >
                       Clé
@@ -248,7 +272,8 @@ export default function ObjectDetailPage() {
                       style={{
                         padding: '0.75rem',
                         textAlign: 'left',
-                        borderBottom: '1px solid #ddd',
+                        borderBottom: '1px solid var(--border-color)',
+                        color: 'var(--text-primary)',
                       }}
                     >
                       Valeur
@@ -261,7 +286,8 @@ export default function ObjectDetailPage() {
                       <td
                         style={{
                           padding: '0.75rem',
-                          borderBottom: '1px solid #eee',
+                          borderBottom: '1px solid var(--border-color)',
+                          color: 'var(--text-primary)',
                         }}
                       >
                         {key}
@@ -269,7 +295,10 @@ export default function ObjectDetailPage() {
                       <td
                         style={{
                           padding: '0.75rem',
-                          borderBottom: '1px solid #eee',
+                          borderBottom: '1px solid var(--border-color)',
+                          color: 'var(--text-secondary)',
+                          fontFamily: 'monospace',
+                          fontSize: '0.9rem',
                         }}
                       >
                         {typeof value === 'object'
@@ -287,14 +316,17 @@ export default function ObjectDetailPage() {
         {/* Métadonnées */}
         {object.metadata && Object.keys(object.metadata).length > 0 && (
           <section>
-            <h2>Métadonnées</h2>
+            <h2 style={{ color: 'var(--text-primary)' }}>Métadonnées</h2>
             <pre
               style={{
                 padding: '1rem',
-                backgroundColor: '#f9f9f9',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
+                backgroundColor: 'var(--bg-tertiary)',
+                border: '1px solid var(--border-color)',
+                borderRadius: 'var(--radius-sm)',
                 overflow: 'auto',
+                color: 'var(--text-primary)',
+                fontFamily: 'monospace',
+                fontSize: '0.9rem',
               }}
             >
               {JSON.stringify(object.metadata, null, 2)}
@@ -304,8 +336,8 @@ export default function ObjectDetailPage() {
 
         {/* ID */}
         <section>
-          <h2>Informations techniques</h2>
-          <div style={{ color: '#666', fontFamily: 'monospace' }}>
+          <h2 style={{ color: 'var(--text-primary)' }}>Informations techniques</h2>
+          <div style={{ color: 'var(--text-secondary)', fontFamily: 'monospace' }}>
             ID: {object.id}
           </div>
         </section>
@@ -313,6 +345,7 @@ export default function ObjectDetailPage() {
     </div>
   );
 }
+
 
 
 

@@ -137,17 +137,24 @@ export default function GraphPage() {
           marginBottom: '1rem',
         }}
       >
-        <h1>Visualisation du Graphe</h1>
+        <h1 style={{ color: 'var(--text-primary)' }}>Visualisation du Graphe</h1>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           <button
             onClick={resetView}
             style={{
               padding: '0.5rem 1rem',
-              backgroundColor: '#6c757d',
+              backgroundColor: 'var(--bg-hover)',
               color: 'white',
               border: 'none',
-              borderRadius: '4px',
+              borderRadius: 'var(--radius-sm)',
               cursor: 'pointer',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--border-hover)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--bg-hover)';
             }}
           >
             🔄 Réinitialiser
@@ -162,12 +169,13 @@ export default function GraphPage() {
           gap: '1rem',
           marginBottom: '1rem',
           padding: '1rem',
-          backgroundColor: '#f8f9fa',
-          borderRadius: '4px',
+          backgroundColor: 'var(--bg-card)',
+          borderRadius: 'var(--radius-sm)',
+          border: '1px solid var(--border-color)',
         }}
       >
         <div style={{ flex: 1 }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
             Recherche
           </label>
           <input
@@ -178,13 +186,15 @@ export default function GraphPage() {
             style={{
               width: '100%',
               padding: '0.5rem',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
+              border: '1px solid var(--border-color)',
+              borderRadius: 'var(--radius-sm)',
+              backgroundColor: 'var(--bg-tertiary)',
+              color: 'var(--text-primary)',
             }}
           />
         </div>
         <div style={{ flex: 1 }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
             Type
           </label>
           <input
@@ -195,13 +205,15 @@ export default function GraphPage() {
             style={{
               width: '100%',
               padding: '0.5rem',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
+              border: '1px solid var(--border-color)',
+              borderRadius: 'var(--radius-sm)',
+              backgroundColor: 'var(--bg-tertiary)',
+              color: 'var(--text-primary)',
             }}
           />
         </div>
         <div>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
             Limite
           </label>
           <select
@@ -209,8 +221,10 @@ export default function GraphPage() {
             onChange={(e) => setLimit(parseInt(e.target.value))}
             style={{
               padding: '0.5rem',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
+              border: '1px solid var(--border-color)',
+              borderRadius: 'var(--radius-sm)',
+              backgroundColor: 'var(--bg-tertiary)',
+              color: 'var(--text-primary)',
             }}
           >
             <option value={100}>100 nœuds</option>
@@ -225,12 +239,23 @@ export default function GraphPage() {
             disabled={loading}
             style={{
               padding: '0.5rem 1rem',
-              backgroundColor: loading ? '#ccc' : '#0070f3',
+              backgroundColor: loading ? 'var(--bg-tertiary)' : 'var(--accent-primary)',
               color: 'white',
               border: 'none',
-              borderRadius: '4px',
+              borderRadius: 'var(--radius-sm)',
               cursor: loading ? 'not-allowed' : 'pointer',
               fontWeight: 'bold',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              if (!loading) {
+                e.currentTarget.style.backgroundColor = 'var(--accent-primary-hover)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!loading) {
+                e.currentTarget.style.backgroundColor = 'var(--accent-primary)';
+              }
             }}
           >
             🔍 Appliquer
@@ -242,10 +267,11 @@ export default function GraphPage() {
         <div
           style={{
             padding: '1rem',
-            backgroundColor: '#fee',
-            border: '1px solid #fcc',
-            borderRadius: '4px',
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            border: '1px solid var(--accent-error)',
+            borderRadius: 'var(--radius-sm)',
             marginBottom: '1rem',
+            color: 'var(--accent-error)',
           }}
         >
           <strong>Erreur :</strong> {error}
@@ -257,9 +283,9 @@ export default function GraphPage() {
         style={{
           width: '100%',
           height: 'calc(100% - 200px)',
-          border: '1px solid #ddd',
-          borderRadius: '4px',
-          backgroundColor: 'white',
+          border: '1px solid var(--border-color)',
+          borderRadius: 'var(--radius-sm)',
+          backgroundColor: 'var(--bg-card)',
           position: 'relative',
         }}
       >
@@ -271,6 +297,7 @@ export default function GraphPage() {
               left: '50%',
               transform: 'translate(-50%, -50%)',
               textAlign: 'center',
+              color: 'var(--text-primary)',
             }}
           >
             <p>Chargement du graphe...</p>
@@ -283,7 +310,7 @@ export default function GraphPage() {
               left: '50%',
               transform: 'translate(-50%, -50%)',
               textAlign: 'center',
-              color: '#666',
+              color: 'var(--text-secondary)',
             }}
           >
             <p>Aucune donnée à afficher.</p>
@@ -307,13 +334,14 @@ export default function GraphPage() {
           style={{
             marginTop: '1rem',
             padding: '1rem',
-            backgroundColor: '#f8f9fa',
-            borderRadius: '4px',
+            backgroundColor: 'var(--bg-card)',
+            borderRadius: 'var(--radius-sm)',
             fontSize: '0.9rem',
-            color: '#666',
+            color: 'var(--text-secondary)',
+            border: '1px solid var(--border-color)',
           }}
         >
-          <strong>📊 Statistiques :</strong> {graphData.nodes.length} nœuds,{' '}
+          <strong style={{ color: 'var(--text-primary)' }}>📊 Statistiques :</strong> {graphData.nodes.length} nœuds,{' '}
           {graphData.edges.length} relations
           {selectedNode && (
             <span>
@@ -321,7 +349,7 @@ export default function GraphPage() {
               | <strong>Nœud sélectionné :</strong>{' '}
               <Link
                 href={`/objects/${selectedNode}`}
-                style={{ color: '#0070f3', textDecoration: 'none' }}
+                style={{ color: 'var(--accent-primary)', textDecoration: 'none' }}
               >
                 {selectedNode}
               </Link>

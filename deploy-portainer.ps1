@@ -14,11 +14,12 @@ param(
     [string]$Neo4jPassword = "bizzanalyze",
     [string]$Neo4jUser = "neo4j",
     [string]$Neo4jDatabase = "neo4j",
-    [string]$EndpointId = "3"
+    [string]$EndpointId = "3",
+    [switch]$Force = $false
 )
 
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "  Déploiement BizzAnalyze dans Portainer" -ForegroundColor Cyan
+Write-Host "  Deploiement BizzAnalyze dans Portainer" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -42,9 +43,9 @@ $headers = @{
 Write-Host "Vérification de la connexion à Portainer..." -ForegroundColor Yellow
 try {
     $status = Invoke-RestMethod -Uri "$PortainerUrl/api/status" -Headers $headers -Method GET
-    Write-Host "✓ Connexion réussie à Portainer" -ForegroundColor Green
+    Write-Host "[OK] Connexion reussie a Portainer" -ForegroundColor Green
 } catch {
-    Write-Host "✗ Erreur de connexion à Portainer: $_" -ForegroundColor Red
+    Write-Host "[ERREUR] Erreur de connexion a Portainer: $_" -ForegroundColor Red
     exit 1
 }
 
@@ -55,27 +56,41 @@ try {
     $existingStack = $stacks | Where-Object { $_.Name -eq "BizzAnalyze" }
     
     if ($existingStack) {
-        Write-Host "⚠ Stack 'BizzAnalyze' existe déjà (ID: $($existingStack.Id))" -ForegroundColor Yellow
-        $response = Read-Host "Voulez-vous la supprimer et la recréer ? (O/N)"
-        if ($response -eq "O" -or $response -eq "o") {
+        Write-Host "[ATTENTION] Stack 'BizzAnalyze' existe deja (ID: $($existingStack.Id))" -ForegroundColor Yellow
+        
+        if ($Force) {
+            Write-Host "Suppression automatique de la stack existante (--Force)..." -ForegroundColor Yellow
+            $shouldDelete = $true
+        } else {
+            try {
+                $response = Read-Host "Voulez-vous la supprimer et la recreer ? (O/N)"
+                $shouldDelete = ($response -eq "O" -or $response -eq "o")
+            } catch {
+                # Mode non-interactif, supprimer automatiquement
+                Write-Host "Mode non-interactif detecte. Suppression automatique..." -ForegroundColor Yellow
+                $shouldDelete = $true
+            }
+        }
+        
+        if ($shouldDelete) {
             Write-Host "Suppression de la stack existante..." -ForegroundColor Yellow
             try {
                 Invoke-RestMethod -Uri "$PortainerUrl/api/stacks/$($existingStack.Id)?endpointId=$EndpointId" -Method DELETE -Headers $headers
-                Write-Host "✓ Stack supprimée" -ForegroundColor Green
+                Write-Host "[OK] Stack supprimee" -ForegroundColor Green
                 
                 # Attendre un peu pour que la suppression soit complète
                 Start-Sleep -Seconds 2
             } catch {
-                Write-Host "✗ Erreur lors de la suppression: $_" -ForegroundColor Red
+                Write-Host "[ERREUR] Erreur lors de la suppression: $_" -ForegroundColor Red
                 exit 1
             }
         } else {
-            Write-Host "Déploiement annulé." -ForegroundColor Yellow
+            Write-Host "Deploiement annule." -ForegroundColor Yellow
             exit 0
         }
     }
 } catch {
-    Write-Host "✗ Erreur lors de la vérification des stacks: $_" -ForegroundColor Red
+    Write-Host "[ERREUR] Erreur lors de la verification des stacks: $_" -ForegroundColor Red
     exit 1
 }
 
@@ -103,33 +118,41 @@ Write-Host "  - Neo4j Password: $Neo4jPassword" -ForegroundColor White
 Write-Host "  - API URL: http://${ServerIp}:3001" -ForegroundColor White
 Write-Host ""
 
-$confirm = Read-Host "Confirmer le déploiement ? (O/N)"
-if ($confirm -ne "O" -and $confirm -ne "o") {
-    Write-Host "Déploiement annulé." -ForegroundColor Yellow
-    exit 0
+if (-not $Force) {
+    try {
+        $confirm = Read-Host "Confirmer le deploiement ? (O/N)"
+        if ($confirm -ne "O" -and $confirm -ne "o") {
+            Write-Host "Deploiement annule." -ForegroundColor Yellow
+            exit 0
+        }
+    } catch {
+        # Mode non-interactif, continuer automatiquement
+        Write-Host "Mode non-interactif detecte. Deploiement automatique..." -ForegroundColor Yellow
+    }
 }
 
-# Déployer la stack
+# Deployer la stack
 Write-Host ""
-Write-Host "Déploiement de la stack..." -ForegroundColor Yellow
+Write-Host "Deploiement de la stack..." -ForegroundColor Yellow
 try {
     $result = Invoke-RestMethod -Uri "$PortainerUrl/api/stacks/create/standalone/repository?endpointId=$EndpointId" -Method POST -Headers $headers -Body $body
-    Write-Host "✓ Stack déployée avec succès !" -ForegroundColor Green
+    Write-Host "[OK] Stack deployee avec succes !" -ForegroundColor Green
     Write-Host "  Stack ID: $($result.Id)" -ForegroundColor White
     Write-Host ""
-    Write-Host "Les services vont démarrer dans quelques instants..." -ForegroundColor Yellow
+    Write-Host "Les services vont demarrer dans quelques instants..." -ForegroundColor Yellow
     Write-Host ""
-    Write-Host "URLs d'accès:" -ForegroundColor Cyan
+    Write-Host "URLs d'acces:" -ForegroundColor Cyan
     Write-Host "  - Application Web: http://${ServerIp}:3002" -ForegroundColor White
     Write-Host "  - API Backend: http://${ServerIp}:3001" -ForegroundColor White
     Write-Host "  - Neo4j Browser: http://${ServerIp}:7474" -ForegroundColor White
     Write-Host ""
-    Write-Host "Vous pouvez suivre le déploiement dans Portainer > Stacks > BizzAnalyze" -ForegroundColor Yellow
+    Write-Host "Vous pouvez suivre le deploiement dans Portainer > Stacks > BizzAnalyze" -ForegroundColor Yellow
 } catch {
-    Write-Host "✗ Erreur lors du déploiement: $_" -ForegroundColor Red
+    Write-Host "[ERREUR] Erreur lors du deploiement: $_" -ForegroundColor Red
     if ($_.ErrorDetails.Message) {
         $errorDetails = $_.ErrorDetails.Message | ConvertFrom-Json
-        Write-Host "  Détails: $($errorDetails.message)" -ForegroundColor Red
+        Write-Host "  Details: $($errorDetails.message)" -ForegroundColor Red
     }
     exit 1
 }
+

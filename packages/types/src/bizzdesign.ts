@@ -53,6 +53,59 @@ export interface ObjectDocument {
 }
 
 /**
+ * Alias pour DataBlock (même structure que ObjectDocument)
+ */
+export type DataBlock = ObjectDocument;
+
+/**
+ * Data Block Definition (schéma d'un data block)
+ */
+export interface DataBlockDefinition {
+  namespace: string;
+  name: string;
+  label?: string;
+  fields: DataBlockField[];
+  schemas?: DataBlockSchemaDefinition[];
+  types: string[]; // Types d'objets applicables
+  createdAt?: string;
+  updatedAt?: string;
+  publishedForRepository?: number;
+}
+
+export interface DataBlockField {
+  name: string;
+  schema: string; // "string", "number", "money", etc.
+  label?: string;
+  constraints?: {
+    currency?: string;
+    [key: string]: any;
+  };
+}
+
+export type DataBlockSchemaDefinition = 
+  | EnumSchemaDefinition 
+  | ReferenceSchemaDefinition 
+  | ListSchemaDefinition;
+
+export interface EnumSchemaDefinition {
+  kind: 'enum';
+  name: string;
+  literals: Array<{ name: string; label?: string }>;
+}
+
+export interface ReferenceSchemaDefinition {
+  kind: 'reference';
+  name: string;
+  types: string[];
+}
+
+export interface ListSchemaDefinition {
+  kind: 'list';
+  name: string;
+  elementSchema: string;
+}
+
+/**
  * Objet retourné par l'API BizzDesign
  */
 export interface BizzDesignObject {
