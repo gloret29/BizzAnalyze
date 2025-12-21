@@ -60,6 +60,50 @@ export function createStatsRouter(storage: Neo4jStorage): Router {
     }
   });
 
+  /**
+   * GET /api/stats/metrics
+   * Récupère les métriques de tous les objets
+   */
+  router.get('/metrics', async (req: Request, res: Response) => {
+    try {
+      const configStore = getConfigStore();
+      const repositoryId =
+        (req.query.repositoryId as string) || configStore.getConfig().bizzdesign.repositoryId;
+
+      if (!repositoryId) {
+        return res.json({
+          success: true,
+          data: [],
+        });
+      }
+
+      // Récupérer tous les objets avec leurs métriques
+      const { objects } = await storage.getObjects(repositoryId, 0, 10000);
+
+      // Extraire les métriques de tous les objets
+      const metrics = objects
+        .filter((obj: any) => obj.metrics && Object.keys(obj.metrics).length > 0)
+        .map((obj: any) => ({
+          objectId: obj.id,
+          objectName: obj.name,
+          objectType: obj.type,
+          metrics: obj.metrics,
+        }));
+
+      res.json({
+        success: true,
+        data: metrics,
+        count: metrics.length,
+      });
+    } catch (error: any) {
+      console.error('Error fetching metrics:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message || 'Failed to fetch metrics',
+      });
+    }
+  });
+
   return router;
 }
 

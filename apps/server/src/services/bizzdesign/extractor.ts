@@ -40,11 +40,19 @@ export class BizzDesignExtractor {
     const repository = await this.client.getRepositoryById(repositoryId);
     console.log(`✓ Repository récupéré: ${repository.name}`);
 
-    // 2. Récupérer tous les objets avec suivi de progression
+    // 2. Récupérer tous les objets avec suivi de progression (incluant métriques et profils)
     progressEmitter.emitStart(`Récupération des objets du repository ${repositoryId}...`);
-    const objects = await this.client.getAllObjects(repoIdNum, (offset, current, total) => {
-      progressEmitter.emitProgress('objects', current, total, offset);
-    });
+    const objects = await this.client.getAllObjects(
+      repoIdNum,
+      (offset, current, total) => {
+        progressEmitter.emitProgress('objects', current, total, offset);
+      },
+      {
+        includeMetrics: true,
+        includeProfiles: true,
+        includeExternalIds: true,
+      }
+    );
     progressEmitter.emitComplete(`Récupération des objets terminée: ${objects.length} objets`);
 
     // 3. Récupérer TOUTES les relations en une seule fois (beaucoup plus efficace)

@@ -44,6 +44,9 @@ export class Neo4jStorage {
         description: obj.description || null,
         properties: JSON.stringify(obj.properties || {}),
         metadata: JSON.stringify(obj.metadata || {}),
+        metrics: JSON.stringify(obj.metrics || {}),
+        profiles: JSON.stringify(obj.profiles || {}),
+        externalId: obj.externalId || null,
         tags: obj.tags || [],
       };
     });
@@ -181,6 +184,9 @@ export class Neo4jStorage {
               o.description = obj.description,
               o.properties = obj.properties,
               o.metadata = obj.metadata,
+              o.metrics = obj.metrics,
+              o.profiles = obj.profiles,
+              o.externalId = obj.externalId,
               o.updatedAt = datetime()
           MERGE (r)-[:CONTAINS]->(o)
         `,
@@ -378,7 +384,8 @@ export class Neo4jStorage {
       const query = `
         MATCH (r:Repository {id: $repositoryId})-[:CONTAINS]->(o:Object)
         ${whereClause}
-        RETURN o.id as id, o.type as type, o.name as name, o.objectName as objectName, o.description as description, o.properties as properties, o.metadata as metadata
+        RETURN o.id as id, o.type as type, o.name as name, o.objectName as objectName, o.description as description, 
+               o.properties as properties, o.metadata as metadata, o.metrics as metrics, o.profiles as profiles, o.externalId as externalId
         ORDER BY o.name
         SKIP $skip
         LIMIT $limit
@@ -446,18 +453,45 @@ export class Neo4jStorage {
               console.warn(`[getObjects] Objet ${record.id} sans nom - parsedObjectName:`, parsedObjectName, 'record.name:', record.name, 'record.objectName:', record.objectName);
             }
             
+            let metrics = {};
+            if (record.metrics) {
+              try {
+                metrics = typeof record.metrics === 'string' 
+                  ? JSON.parse(record.metrics) 
+                  : record.metrics;
+              } catch (e) {
+                console.warn(`[getObjects] Erreur de parsing des metrics pour ${record.id}:`, e);
+                metrics = {};
+              }
+            }
+
+            let profiles = {};
+            if (record.profiles) {
+              try {
+                profiles = typeof record.profiles === 'string' 
+                  ? JSON.parse(record.profiles) 
+                  : record.profiles;
+              } catch (e) {
+                console.warn(`[getObjects] Erreur de parsing des profiles pour ${record.id}:`, e);
+                profiles = {};
+              }
+            }
+            
             const result = {
               id: record.id || '',
               type: record.type || '',
               name: finalName,
               objectName: finalName, // Pour compatibilité avec le frontend
               description: record.description || null,
+              externalId: record.externalId || null,
               properties: record.properties 
                 ? (typeof record.properties === 'string' ? JSON.parse(record.properties) : record.properties) 
                 : {},
               metadata: record.metadata 
                 ? (typeof record.metadata === 'string' ? JSON.parse(record.metadata) : record.metadata) 
                 : {},
+              metrics,
+              profiles,
             };
             
             // Log le premier objet pour debug
@@ -683,7 +717,7 @@ export class Neo4jStorage {
         OPTIONAL MATCH (source:Object)-[r2:RELATES_TO]->(o)
         OPTIONAL MATCH (o)-[:HAS_DATABLOCK]->(db:DataBlock)
         RETURN o.id as id, o.type as type, o.name as name, o.objectName as objectName, o.description as description, 
-               o.properties as properties, o.metadata as metadata,
+               o.properties as properties, o.metadata as metadata, o.metrics as metrics, o.profiles as profiles, o.externalId as externalId,
                collect(DISTINCT t.name) as tags,
                collect(DISTINCT {id: target.id, name: target.name, type: r.type}) as outgoing,
                collect(DISTINCT {id: source.id, name: source.name, type: r2.type}) as incoming,
@@ -747,6 +781,32 @@ export class Neo4jStorage {
       const outgoing = (record.outgoing || []).filter((rel: any) => rel.id && rel.id !== null);
       const incoming = (record.incoming || []).filter((rel: any) => rel.id && rel.id !== null);
 
+      // Parser les métriques
+      let metrics = {};
+      if (record.metrics) {
+        try {
+          metrics = typeof record.metrics === 'string' 
+            ? JSON.parse(record.metrics) 
+            : record.metrics;
+        } catch (e) {
+          console.warn(`[getObjectById] Erreur de parsing des metrics pour ${objectId}:`, e);
+          metrics = {};
+        }
+      }
+
+      // Parser les profils
+      let profiles = {};
+      if (record.profiles) {
+        try {
+          profiles = typeof record.profiles === 'string' 
+            ? JSON.parse(record.profiles) 
+            : record.profiles;
+        } catch (e) {
+          console.warn(`[getObjectById] Erreur de parsing des profiles pour ${objectId}:`, e);
+          profiles = {};
+        }
+      }
+
       // Parser les data blocks
       const dataBlocks = (record.dataBlocks || [])
         .filter((db: any) => db && db.id && db.id !== null)
@@ -784,8 +844,11 @@ export class Neo4jStorage {
         name: finalName,
         objectName: finalName,
         description: record.description || null,
+        externalId: record.externalId || null,
         properties,
         metadata,
+        metrics,
+        profiles,
         tags: (record.tags || []).filter((tag: any) => tag !== null),
         dataBlocks,
         relationships: {
@@ -1086,6 +1149,127 @@ export class Neo4jStorage {
       };
     } catch (error: any) {
       console.error('[getNodeNeighbors] Error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Récupère toutes les métriques d'un repository
+   */
+  async getAllMetrics(
+    repositoryId: string,
+    filters?: {
+      objectType?: string;
+      objectId?: string;
+    }
+  ): Promise<any[]> {
+    try {
+      const conditions: string[] = [
+        '(r:Repository {id: $repositoryId})-[:CONTAINS]->(o:Object)',
+        'o.metrics IS NOT NULL'
+      ];
+      const params: any = { repositoryId };
+
+      if (filters?.objectType) {
+        conditions.push('o.type = $objectType');
+        params.objectType = filters.objectType;
+      }
+
+      if (filters?.objectId) {
+        conditions.push('o.id = $objectId');
+        params.objectId = filters.objectId;
+      }
+
+      const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+      const query = `
+        MATCH (r:Repository {id: $repositoryId})-[:CONTAINS]->(o:Object)
+        ${whereClause}
+        RETURN o.id as objectId,
+               o.name as objectName,
+               o.type as objectType,
+               o.metrics as metrics
+        ORDER BY o.name
+      `;
+
+      const result = await this.client.executeQuery(query, params);
+
+      return result
+        .filter((record: any) => record.metrics)
+        .map((record: any) => {
+          let metrics = {};
+          if (record.metrics) {
+            try {
+              metrics = typeof record.metrics === 'string' 
+                ? JSON.parse(record.metrics) 
+                : record.metrics;
+            } catch (e) {
+              console.warn(`[getAllMetrics] Erreur de parsing des metrics pour ${record.objectId}:`, e);
+              metrics = {};
+            }
+          }
+
+          return {
+            objectId: record.objectId,
+            objectName: record.objectName,
+            objectType: record.objectType,
+            metrics,
+          };
+        });
+    } catch (error: any) {
+      console.error('[getAllMetrics] Error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Récupère toutes les métriques agrégées par type d'objet
+   */
+  async getMetricsByType(repositoryId: string): Promise<Record<string, any[]>> {
+    try {
+      const query = `
+        MATCH (r:Repository {id: $repositoryId})-[:CONTAINS]->(o:Object)
+        WHERE o.metrics IS NOT NULL
+        RETURN o.type as objectType,
+               o.id as objectId,
+               o.name as objectName,
+               o.metrics as metrics
+        ORDER BY o.type, o.name
+      `;
+
+      const result = await this.client.executeQuery(query, { repositoryId });
+
+      const metricsByType: Record<string, any[]> = {};
+
+      result.forEach((record: any) => {
+        if (!record.objectType) return;
+
+        let metrics = {};
+        if (record.metrics) {
+          try {
+            metrics = typeof record.metrics === 'string' 
+              ? JSON.parse(record.metrics) 
+              : record.metrics;
+          } catch (e) {
+            console.warn(`[getMetricsByType] Erreur de parsing des metrics pour ${record.objectId}:`, e);
+            metrics = {};
+          }
+        }
+
+        if (!metricsByType[record.objectType]) {
+          metricsByType[record.objectType] = [];
+        }
+
+        metricsByType[record.objectType].push({
+          objectId: record.objectId,
+          objectName: record.objectName,
+          metrics,
+        });
+      });
+
+      return metricsByType;
+    } catch (error: any) {
+      console.error('[getMetricsByType] Error:', error);
       throw error;
     }
   }

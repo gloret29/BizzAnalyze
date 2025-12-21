@@ -111,3 +111,8 @@ Si vous avez des identifiants BizzDesign, ajoutez-les dans Portainer :
 
 Pour plus de détails, consultez `PORTAINER_SETUP.md`.
 
+
+
+
+
+

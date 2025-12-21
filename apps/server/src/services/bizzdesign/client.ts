@@ -6,6 +6,8 @@ import type {
   BizzDesignObject,
   BizzDesignRelation,
   Relationship,
+  DataBlock,
+  DataBlockDefinition,
 } from '@bizzanalyze/types';
 import { retry, delay } from '@bizzanalyze/utils';
 import { bizzDesignLogger } from './logger';
@@ -299,8 +301,30 @@ export class BizzDesignClient {
   async getObjects(
     repositoryId: number,
     offset: number = 0,
-    limit: number = 10000
+    limit: number = 10000,
+    options?: {
+      includeMetrics?: boolean;
+      includeProfiles?: boolean;
+      includeExternalIds?: boolean;
+    }
   ): Promise<{ items: BizzDesignObject[]; hasMore: boolean; total?: number }> {
+    const params: Record<string, any> = {
+      offset: offset,
+      limit: limit,
+    };
+
+    if (options?.includeMetrics) {
+      params.includeMetrics = true;
+    }
+
+    if (options?.includeProfiles) {
+      params.includeProfiles = true;
+    }
+
+    if (options?.includeExternalIds) {
+      params.includeExternalIds = true;
+    }
+
     const response = await this.request<{
       _items: BizzDesignObject[];
       _offset: number;
@@ -308,10 +332,7 @@ export class BizzDesignClient {
     }>({
       method: 'GET',
       url: `/repositories/${repositoryId}/objects`,
-      params: {
-        offset: offset,
-        limit: limit,
-      },
+      params,
     });
 
     const items = response._items || [];
@@ -338,7 +359,12 @@ export class BizzDesignClient {
    */
   async getAllObjects(
     repositoryId: number,
-    onProgress?: (offset: number, current: number, total?: number) => void
+    onProgress?: (offset: number, current: number, total?: number) => void,
+    options?: {
+      includeMetrics?: boolean;
+      includeProfiles?: boolean;
+      includeExternalIds?: boolean;
+    }
   ): Promise<BizzDesignObject[]> {
     const allObjects: BizzDesignObject[] = [];
     let offset = 0;
@@ -352,7 +378,7 @@ export class BizzDesignClient {
 
     while (hasMore) {
       console.log(`\n📤 [PAGINATION] Requête avec offset=${offset}, limit=${limit}`);
-      const response = await this.getObjects(repositoryId, offset, limit);
+      const response = await this.getObjects(repositoryId, offset, limit, options);
       const itemsCount = response.items.length;
       
       // Filtrer les objets qui sont en fait des relations
@@ -391,6 +417,49 @@ export class BizzDesignClient {
 
     console.log(`✓ ${allObjects.length} objets récupérés au total (${filteredCount} objets-relations filtrés car déjà présents dans relationships.json)`);
     return allObjects;
+  }
+
+  /**
+   * Récupère tous les data blocks d'un repository
+   * Parcourt tous les objets et extrait leurs data blocks
+   */
+  async getAllDataBlocks(
+    repositoryId: number,
+    onProgress?: (current: number, total?: number) => void
+  ): Promise<DataBlock[]> {
+    console.log(`\n📦 ========== RÉCUPÉRATION DES DATA BLOCKS ==========`);
+    console.log(`📦 Repository: ${repositoryId}`);
+
+    // Récupérer tous les objets avec leurs data blocks (documents)
+    const objects = await this.getAllObjects(repositoryId, undefined, {
+      includeMetrics: false,
+      includeProfiles: false,
+      includeExternalIds: false,
+    });
+
+    const allDataBlocks: DataBlock[] = [];
+    let processed = 0;
+
+    for (const obj of objects) {
+      if (obj.documents && obj.documents.length > 0) {
+        obj.documents.forEach((doc) => {
+          allDataBlocks.push({
+            objectId: obj.id,
+            schemaNamespace: doc.schemaNamespace,
+            schemaName: doc.schemaName,
+            values: doc.values,
+            updatedAt: doc.updatedAt,
+          });
+        });
+      }
+      processed++;
+      if (onProgress) {
+        onProgress(processed, objects.length);
+      }
+    }
+
+    console.log(`✓ ${allDataBlocks.length} data blocks récupérés au total`);
+    return allDataBlocks;
   }
 
   /**
@@ -488,6 +557,78 @@ export class BizzDesignClient {
   ): Promise<Relationship[]> {
     console.warn(`⚠️ getObjectRelationships n'est pas encore implémentée selon le swagger`);
     return [];
+  }
+
+  /**
+   * Récupère tous les data blocks d'un objet
+   */
+  async getObjectDataBlocks(
+    repositoryId: number,
+    objectId: string
+  ): Promise<DataBlock[]> {
+    try {
+      const response = await this.request<{
+        _items: DataBlock[];
+      }>({
+        method: 'GET',
+        url: `/repositories/${repositoryId}/objects/${objectId}/datablocks`,
+      });
+
+      return response._items || [];
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        return [];
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Récupère un data block spécifique d'un objet
+   */
+  async getObjectDataBlock(
+    repositoryId: number,
+    objectId: string,
+    namespace: string,
+    name: string
+  ): Promise<DataBlock | null> {
+    try {
+      const response = await this.request<DataBlock>({
+        method: 'GET',
+        url: `/repositories/${repositoryId}/objects/${objectId}/datablocks/${namespace}/${name}`,
+      });
+
+      return response;
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        return null;
+      }
+      throw error;
+    }
+  }
+
+
+  /**
+   * Récupère une data block definition spécifique
+   */
+  async getDataBlockDefinition(
+    repositoryId: number,
+    namespace: string,
+    name: string
+  ): Promise<DataBlockDefinition | null> {
+    try {
+      const response = await this.request<DataBlockDefinition>({
+        method: 'GET',
+        url: `/repositories/${repositoryId}/schemas/${namespace}/${name}`,
+      });
+
+      return response;
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        return null;
+      }
+      throw error;
+    }
   }
 }
 
