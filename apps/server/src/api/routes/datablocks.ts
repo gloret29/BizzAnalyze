@@ -220,7 +220,7 @@ export function createDataBlocksRouter(storage: Neo4jStorage): Router {
         });
       }
 
-      const definitions = await client.getAllDataBlockDefinitions(repoIdNum, (offset, current) => {
+      const definitions = await client.getAllDataBlockDefinitions(repoIdNum, (offset: number, current: number) => {
         // Log de progression optionnel
         if (current % 10 === 0) {
           console.log(`[API] Récupération des définitions: ${current} récupérées`);

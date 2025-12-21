@@ -609,6 +609,71 @@ export class BizzDesignClient {
 
 
   /**
+   * Récupère toutes les data block definitions d'un repository avec pagination
+   */
+  async getDataBlockDefinitions(
+    repositoryId: number,
+    offset: number = 0,
+    limit: number = 10000
+  ): Promise<{ items: DataBlockDefinition[]; hasMore: boolean }> {
+    const response = await this.request<{
+      _items: DataBlockDefinition[];
+      _offset: number;
+      _limit: number;
+    }>({
+      method: 'GET',
+      url: `/repositories/${repositoryId}/schemas`,
+      params: {
+        offset,
+        limit,
+      },
+    });
+
+    const items = response._items || [];
+    const hasMore = items.length >= limit;
+
+    return {
+      items,
+      hasMore,
+    };
+  }
+
+  /**
+   * Récupère toutes les data block definitions d'un repository (gestion automatique de la pagination)
+   */
+  async getAllDataBlockDefinitions(
+    repositoryId: number,
+    onProgress?: (offset: number, current: number) => void
+  ): Promise<DataBlockDefinition[]> {
+    console.log(`\n📋 ========== RÉCUPÉRATION DES DATA BLOCK DEFINITIONS ==========`);
+    console.log(`📋 Repository: ${repositoryId}`);
+
+    const allDefinitions: DataBlockDefinition[] = [];
+    let offset = 0;
+    let hasMore = true;
+    const limit = 10000;
+
+    while (hasMore) {
+      const response = await this.getDataBlockDefinitions(repositoryId, offset, limit);
+      allDefinitions.push(...response.items);
+
+      if (onProgress) {
+        onProgress(offset, allDefinitions.length);
+      }
+
+      offset += response.items.length;
+      hasMore = response.hasMore && response.items.length > 0;
+
+      if (hasMore) {
+        await delay(100);
+      }
+    }
+
+    console.log(`✓ ${allDefinitions.length} data block definitions récupérées au total`);
+    return allDefinitions;
+  }
+
+  /**
    * Récupère une data block definition spécifique
    */
   async getDataBlockDefinition(
