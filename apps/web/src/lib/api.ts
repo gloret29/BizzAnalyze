@@ -27,27 +27,28 @@ const getApiUrl = () => {
   const protocol = currentUrl.protocol;
   const hostname = currentUrl.hostname;
   
-  // Si on accède via HTTPS (port 443 ou pas de port spécifié avec HTTPS)
+  // PRIORITÉ 1: Si on accède via HTTPS (port 443 ou pas de port spécifié avec HTTPS)
   // C'est probablement via un reverse proxy (SWAG, Nginx, etc.)
   // Utiliser une URL relative pour que le proxy route
-  if (protocol === 'https:' || (currentPort === '443' || currentPort === '')) {
+  if (protocol === 'https:') {
+    // Avec HTTPS, toujours utiliser une URL relative (SWAG/Nginx route)
     return '';
   }
   
-  // Si on accède directement au port 3002 (sans reverse proxy)
+  // PRIORITÉ 2: Si on accède via HTTP sur le port 80 (standard) ou sans port
+  // C'est probablement via un reverse proxy
+  // Utiliser une URL relative
+  if (protocol === 'http:' && (currentPort === '80' || currentPort === '')) {
+    return '';
+  }
+  
+  // PRIORITÉ 3: Si on accède directement au port 3002 (sans reverse proxy)
   // Utiliser le même host mais port 3001 pour l'API
   if (currentPort === '3002') {
     return `${protocol}//${hostname}:3001`;
   }
   
-  // Si on accède via HTTP sur le port 80 (standard)
-  // C'est probablement via un reverse proxy
-  // Utiliser une URL relative
-  if (currentPort === '80' || currentPort === '') {
-    return '';
-  }
-  
-  // Si on accède via un port personnalisé (autre que 80/443/3002)
+  // PRIORITÉ 4: Si on accède via un port personnalisé (autre que 80/443/3002)
   // et que ce n'est pas un port standard, essayer le port 3001
   // Cela fonctionne pour les accès locaux (192.168.x.x:3002 -> 192.168.x.x:3001)
   if (currentPort && currentPort !== '80' && currentPort !== '443') {
@@ -62,11 +63,21 @@ const getApiUrl = () => {
 
 const API_URL = getApiUrl();
 
+// Log de debug pour comprendre quelle URL est utilisée
+if (typeof window !== 'undefined') {
+  console.log('[API] URL détectée:', API_URL || '(URL relative - routée par proxy)');
+  console.log('[API] Location actuelle:', window.location.href);
+  console.log('[API] Protocol:', window.location.protocol);
+  console.log('[API] Port:', window.location.port || '(défaut)');
+}
+
 const apiClient = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
+  // Timeout augmenté pour les requêtes depuis internet
+  timeout: 60000,
 });
 
 // Callback pour les toasters (sera défini par le composant qui utilise l'API)
@@ -103,8 +114,35 @@ apiClient.interceptors.request.use(
     return config;
   },
   (error) => {
+    // Log détaillé des erreurs réseau
+    if (error.response) {
+      // Erreur HTTP (4xx, 5xx)
+      console.error('[API] ❌ Erreur HTTP:', {
+        status: error.response.status,
+        statusText: error.response.statusText,
+        url: error.config?.url,
+        method: error.config?.method,
+        baseURL: error.config?.baseURL,
+      });
+    } else if (error.request) {
+      // Erreur réseau (pas de réponse du serveur)
+      console.error('[API] ❌ Erreur réseau:', {
+        message: error.message,
+        url: error.config?.url,
+        method: error.config?.method,
+        baseURL: error.config?.baseURL,
+        fullURL: error.config?.baseURL ? `${error.config.baseURL}${error.config.url}` : error.config?.url,
+      });
+    } else {
+      // Erreur de configuration
+      console.error('[API] ❌ Erreur de configuration:', error.message);
+    }
+    
     if (toastCallback) {
-      toastCallback('❌ Erreur lors de la requête', 'error');
+      const errorMessage = error.response 
+        ? `Erreur ${error.response.status}: ${error.response.statusText}`
+        : error.message || 'Erreur réseau';
+      toastCallback(`❌ ${errorMessage}`, 'error');
     }
     return Promise.reject(error);
   }
@@ -113,6 +151,10 @@ apiClient.interceptors.request.use(
 // Intercepteur pour les réponses
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
+    // Log de debug pour les requêtes réussies
+    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+      console.log('[API] ✅ Requête réussie:', response.config.method?.toUpperCase(), response.config.url);
+    }
     const url = response.config.url || '';
     
     // Détecter les réponses de l'API BizzDesign
@@ -262,8 +304,40 @@ export const api = {
    * Health check
    */
   async health(): Promise<{ status: string; timestamp: string }> {
-    const response = await apiClient.get('/health');
-    return response.data;
+    try {
+      const response = await apiClient.get('/health');
+      return response.data;
+    } catch (error: any) {
+      console.error('[API] Health check failed:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Test de connectivité API (avec logs détaillés)
+   */
+  async testConnection(): Promise<{ success: boolean; url: string; error?: string }> {
+    const testUrl = API_URL ? `${API_URL}/api/health` : '/api/health';
+    console.log('[API] Test de connexion vers:', testUrl);
+    
+    try {
+      const response = await apiClient.get('/api/health');
+      console.log('[API] ✅ Test de connexion réussi');
+      return {
+        success: true,
+        url: testUrl,
+      };
+    } catch (error: any) {
+      const errorMsg = error.response 
+        ? `HTTP ${error.response.status}: ${error.response.statusText}`
+        : error.message || 'Erreur réseau';
+      console.error('[API] ❌ Test de connexion échoué:', errorMsg);
+      return {
+        success: false,
+        url: testUrl,
+        error: errorMsg,
+      };
+    }
   },
 
   // ============ Configuration ============
