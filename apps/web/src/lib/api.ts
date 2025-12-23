@@ -27,21 +27,34 @@ const getApiUrl = () => {
   const protocol = currentUrl.protocol;
   const hostname = currentUrl.hostname;
   
+  // Si on accède via HTTPS (port 443 ou pas de port spécifié avec HTTPS)
+  // C'est probablement via un reverse proxy (SWAG, Nginx, etc.)
+  // Utiliser une URL relative pour que le proxy route
+  if (protocol === 'https:' || (currentPort === '443' || currentPort === '')) {
+    return '';
+  }
+  
   // Si on accède directement au port 3002 (sans reverse proxy)
   // Utiliser le même host mais port 3001 pour l'API
   if (currentPort === '3002') {
     return `${protocol}//${hostname}:3001`;
   }
   
-  // Si on accède via un port personnalisé (autre que 3002)
-  // et que ce n'est pas le port standard 80/443, essayer le port 3001
-  if (currentPort && currentPort !== '80' && currentPort !== '443' && currentPort !== '') {
-    // Si on est sur un port personnalisé, essayer d'utiliser le port 3001
-    // Cela fonctionne pour les accès locaux (192.168.x.x:3002 -> 192.168.x.x:3001)
+  // Si on accède via HTTP sur le port 80 (standard)
+  // C'est probablement via un reverse proxy
+  // Utiliser une URL relative
+  if (currentPort === '80' || currentPort === '') {
+    return '';
+  }
+  
+  // Si on accède via un port personnalisé (autre que 80/443/3002)
+  // et que ce n'est pas un port standard, essayer le port 3001
+  // Cela fonctionne pour les accès locaux (192.168.x.x:3002 -> 192.168.x.x:3001)
+  if (currentPort && currentPort !== '80' && currentPort !== '443') {
     return `${protocol}//${hostname}:3001`;
   }
   
-  // Sinon, utiliser une URL relative pour que le reverse proxy route
+  // Par défaut, utiliser une URL relative pour que le reverse proxy route
   // Cela fonctionne avec SWAG, Nginx, Traefik, etc.
   // Le reverse proxy route /api vers le serveur backend
   return '';
