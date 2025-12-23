@@ -27,11 +27,10 @@ const getApiUrl = () => {
   const protocol = currentUrl.protocol;
   const hostname = currentUrl.hostname;
   
-  // PRIORITÉ 1: Si on accède via HTTPS (port 443 ou pas de port spécifié avec HTTPS)
-  // C'est probablement via un reverse proxy (SWAG, Nginx, etc.)
-  // Utiliser une URL relative pour que le proxy route
+  // PRIORITÉ 1: Si on accède via HTTPS
+  // TOUJOURS utiliser une URL relative (SWAG/Nginx route)
+  // C'est la configuration standard pour les reverse proxies
   if (protocol === 'https:') {
-    // Avec HTTPS, toujours utiliser une URL relative (SWAG/Nginx route)
     return '';
   }
   
@@ -44,15 +43,22 @@ const getApiUrl = () => {
   
   // PRIORITÉ 3: Si on accède directement au port 3002 (sans reverse proxy)
   // Utiliser le même host mais port 3001 pour l'API
-  if (currentPort === '3002') {
+  // Seulement si ce n'est PAS localhost (pour éviter les problèmes)
+  if (currentPort === '3002' && hostname !== 'localhost' && !hostname.startsWith('127.')) {
     return `${protocol}//${hostname}:3001`;
   }
   
   // PRIORITÉ 4: Si on accède via un port personnalisé (autre que 80/443/3002)
   // et que ce n'est pas un port standard, essayer le port 3001
   // Cela fonctionne pour les accès locaux (192.168.x.x:3002 -> 192.168.x.x:3001)
-  if (currentPort && currentPort !== '80' && currentPort !== '443') {
+  // MAIS seulement si ce n'est pas localhost
+  if (currentPort && currentPort !== '80' && currentPort !== '443' && hostname !== 'localhost' && !hostname.startsWith('127.')) {
     return `${protocol}//${hostname}:3001`;
+  }
+  
+  // PRIORITÉ 5: Si on est sur localhost, utiliser localhost:3001
+  if (hostname === 'localhost' || hostname.startsWith('127.')) {
+    return 'http://localhost:3001';
   }
   
   // Par défaut, utiliser une URL relative pour que le reverse proxy route
@@ -61,14 +67,38 @@ const getApiUrl = () => {
   return '';
 };
 
+// Fonction dynamique pour obtenir l'URL de l'API (au cas où window.location change)
+const getApiUrlDynamic = () => {
+  // Si on a une URL explicite dans les env vars, l'utiliser (priorité absolue)
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+  
+  // Côté serveur (SSR), utiliser l'URL locale si disponible
+  if (typeof window === 'undefined') {
+    return 'http://localhost:3001';
+  }
+  
+  // Côté client : toujours recalculer pour être sûr
+  return getApiUrl();
+};
+
 const API_URL = getApiUrl();
 
 // Log de debug pour comprendre quelle URL est utilisée
 if (typeof window !== 'undefined') {
-  console.log('[API] URL détectée:', API_URL || '(URL relative - routée par proxy)');
+  const detectedUrl = getApiUrlDynamic();
+  console.log('[API] URL détectée:', detectedUrl || '(URL relative - routée par proxy)');
   console.log('[API] Location actuelle:', window.location.href);
   console.log('[API] Protocol:', window.location.protocol);
   console.log('[API] Port:', window.location.port || '(défaut)');
+  console.log('[API] Hostname:', window.location.hostname);
+  
+  // Avertissement si on utilise HTTPS mais pas d'URL relative
+  if (window.location.protocol === 'https:' && detectedUrl && detectedUrl !== '') {
+    console.warn('[API] ⚠️ ATTENTION: HTTPS détecté mais URL absolue utilisée:', detectedUrl);
+    console.warn('[API] ⚠️ Avec SWAG/Nginx, utilisez une URL relative (vide)');
+  }
 }
 
 const apiClient = axios.create({
@@ -90,6 +120,22 @@ export function setToastCallback(callback: (message: string, type: 'info' | 'suc
 // Intercepteur pour les requêtes
 apiClient.interceptors.request.use(
   (config) => {
+    // FORCER l'URL relative si on est sur HTTPS (pour SWAG/Nginx)
+    // Cela garantit que même si baseURL est mal configuré, on utilise toujours une URL relative
+    if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
+      // Si on a un baseURL défini mais qu'on est sur HTTPS, utiliser une URL relative
+      if (config.baseURL && config.baseURL !== '') {
+        // Remplacer l'URL complète par une URL relative
+        const url = config.url || '';
+        // Si l'URL commence par /api, on la garde telle quelle
+        // Sinon, on s'assure qu'elle commence par /
+        if (!url.startsWith('/')) {
+          config.url = '/' + url;
+        }
+        config.baseURL = '';
+      }
+    }
+    
     // Détecter les appels à l'API BizzDesign
     if (config.url?.includes('/api/config') || config.url?.includes('/api/sync') || config.url?.includes('/api/import')) {
       const method = config.method?.toUpperCase() || 'GET';
