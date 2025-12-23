@@ -316,7 +316,7 @@ export const api = {
   /**
    * Test de connectivité API (avec logs détaillés)
    */
-  async testConnection(): Promise<{ success: boolean; url: string; error?: string }> {
+  async testApiConnection(): Promise<{ success: boolean; url: string; error?: string }> {
     const testUrl = API_URL ? `${API_URL}/api/health` : '/api/health';
     console.log('[API] Test de connexion vers:', testUrl);
     
