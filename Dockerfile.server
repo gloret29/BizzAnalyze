@@ -25,6 +25,9 @@ RUN npx turbo run build --filter=@bizzanalyze/server... --ui=stream --no-daemon
 # Image de production
 FROM node:18-alpine AS runner
 
+# Installer wget pour les healthchecks
+RUN apk add --no-cache wget
+
 WORKDIR /app
 
 # Copier les fichiers nécessaires
