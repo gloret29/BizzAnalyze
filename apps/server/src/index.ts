@@ -31,11 +31,13 @@ async function main() {
   const app = createApi(storage);
 
   // Démarrer le serveur
+  // Écouter sur 0.0.0.0 pour être accessible depuis internet
   const port = config.server.port;
-  app.listen(port, () => {
-    console.log(`✅ Serveur démarré sur http://localhost:${port}`);
-    console.log(`   Health check: http://localhost:${port}/health`);
-    console.log(`   API: http://localhost:${port}/api\n`);
+  const host = process.env.HOST || '0.0.0.0';
+  app.listen(port, host, () => {
+    console.log(`✅ Serveur démarré sur http://${host}:${port}`);
+    console.log(`   Health check: http://${host}:${port}/health`);
+    console.log(`   API: http://${host}:${port}/api\n`);
   });
 
   // Gestion de l'arrêt propre

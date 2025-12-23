@@ -9,9 +9,9 @@ import type {
 
 // En production avec reverse proxy (SWAG/Nginx), utiliser une URL relative (le proxy gère le routage)
 // En développement local, utiliser localhost:3001
-// Détecte automatiquement si on est côté client (browser) pour utiliser une URL relative
+// Détecte automatiquement l'URL de l'API en fonction du contexte
 const getApiUrl = () => {
-  // Si on a une URL explicite dans les env vars, l'utiliser
+  // Si on a une URL explicite dans les env vars, l'utiliser (priorité absolue)
   if (process.env.NEXT_PUBLIC_API_URL) {
     return process.env.NEXT_PUBLIC_API_URL;
   }
@@ -21,8 +21,29 @@ const getApiUrl = () => {
     return 'http://localhost:3001';
   }
   
-  // Côté client (browser) : utiliser une URL relative pour que le reverse proxy route
-  // Cela fonctionne avec SWAG, Nginx, etc.
+  // Côté client (browser) : détecter automatiquement l'URL de l'API
+  const currentUrl = window.location;
+  const currentPort = currentUrl.port;
+  const protocol = currentUrl.protocol;
+  const hostname = currentUrl.hostname;
+  
+  // Si on accède directement au port 3002 (sans reverse proxy)
+  // Utiliser le même host mais port 3001 pour l'API
+  if (currentPort === '3002') {
+    return `${protocol}//${hostname}:3001`;
+  }
+  
+  // Si on accède via un port personnalisé (autre que 3002)
+  // et que ce n'est pas le port standard 80/443, essayer le port 3001
+  if (currentPort && currentPort !== '80' && currentPort !== '443' && currentPort !== '') {
+    // Si on est sur un port personnalisé, essayer d'utiliser le port 3001
+    // Cela fonctionne pour les accès locaux (192.168.x.x:3002 -> 192.168.x.x:3001)
+    return `${protocol}//${hostname}:3001`;
+  }
+  
+  // Sinon, utiliser une URL relative pour que le reverse proxy route
+  // Cela fonctionne avec SWAG, Nginx, Traefik, etc.
+  // Le reverse proxy route /api vers le serveur backend
   return '';
 };
 
